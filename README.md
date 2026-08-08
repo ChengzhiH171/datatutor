@@ -54,6 +54,7 @@
 默认: http://localhost/login.html
 
 ## 项目结构
+```
 /opt/datatutor/
 ├── backend/
 │ ├── routes/ ai.py / auth.py / courses.py / chat.py
@@ -67,3 +68,4 @@
 │ └── admin.html 管理员面板
 ├── docker-compose.yml
 └── .env.example
+```
