@@ -35,13 +35,11 @@
 
 学生登录后自动分配独立 Docker 实训环境：
 
-| 配置 | 值 |
-|------|-----|
-| 容器名 | dts-student{ID} |
-| SSH 端口 | 2200+ID |
-| 账号 | learner / 123456 |
-| 课程数据 | /home/learner/course-data/ (只读挂载) |
-| 安装包 | /home/learner/packages/ (只读挂载) |
+- 容器名: dts-student{ID}
+- SSH 端口: 2200+ID
+- 账号: learner / 123456
+- 课程数据: /home/learner/course-data/ (只读挂载)
+- 安装包: /home/learner/packages/ (只读挂载)
 
 11 门课程预置安装包: Hadoop, Spark, Hive, Kafka, Flink, ZooKeeper, HBase, Flume, Sqoop, Storm
 
@@ -56,19 +54,16 @@
 默认: http://localhost/login.html
 
 ## 项目结构
-
-```
 /opt/datatutor/
 ├── backend/
-│   ├── routes/      ai.py / auth.py / courses.py / chat.py
-│   ├── terminal_ws/  SSH WebSocket 终端
-│   └── tasks/        异步报告生成
+│ ├── routes/ ai.py / auth.py / courses.py / chat.py
+│ ├── terminal_ws/ SSH WebSocket 终端
+│ └── tasks/ 异步报告生成
 ├── frontend/
-│   ├── login.html    登录/注册
-│   ├── teacher.html  教师工作台
-│   ├── hub.html      学生实训台
-│   └── admin.html    管理员面板
+│ ├── login.html 登录/注册
+│ ├── hub.html 学生选课
+│ ├── main.html 学生实训终端
+│ ├── teacher.html 教师工作台
+│ └── admin.html 管理员面板
 ├── docker-compose.yml
 └── .env.example
-```
-
