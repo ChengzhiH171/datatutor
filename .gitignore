@@ -43,3 +43,4 @@ backend/.env
 
 # Vendor packages (downloaded externally)
 packages/
+!backend/.env.example
