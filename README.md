@@ -16,11 +16,11 @@
 
 ## 技术栈
 
-- **后端**: Python 3.8 / Flask / Flask-SocketIO / SQLAlchemy / Celery
-- **数据库**: MySQL 8.0 / Redis 7
-- **AI 引擎**: 讯飞星火认知大模型 V4.0 to 星辰 MaaS 工作流 Agent API
-- **容器化**: Docker / Docker Compose
-- **前端**: HTML5 / Tailwind CSS / Iconify
+- 后端: Python 3.8 / Flask / Flask-SocketIO / SQLAlchemy / Celery
+- 数据库: MySQL 8.0 / Redis 7
+- AI 引擎: 讯飞星火认知大模型 V4.0 → 星辰 MaaS 工作流 Agent API
+- 容器化: Docker / Docker Compose
+- 前端: HTML5 / Tailwind CSS / Iconify
 
 ## 讯飞星火 Agent
 
@@ -71,7 +71,3 @@
 ├── docker-compose.yml
 └── .env.example
 ```
-
-- **学校**: 重庆电子科技职业大学
-- **专业**: 大数据工程技术
-- **赛题**: XH-202620 面向一流学科建设的学科垂类大模型与创新应用开发
