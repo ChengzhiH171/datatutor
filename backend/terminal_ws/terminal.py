@@ -155,7 +155,7 @@ def register_terminal_handlers(socketio):
                     '--name', container_name,
                     '-p', f'127.0.0.1:{vm_port}:22',
                     '-v', '/opt/datatutor/backend/uploads:/home/learner/course-data:ro',
-                    '-v', '/opt/datatutor/packages:/home/learner/packages:ro',
+                    '-v', '/opt/packages:/home/learner/packages:ro',
                     '--restart', 'unless-stopped',
                     'datatutor-student'], timeout=30)
             elif 'Exited' in result.stdout:
