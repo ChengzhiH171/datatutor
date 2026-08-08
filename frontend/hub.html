@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>实训章节 - DataTutor 大数据实训智能副驾</title>
+<link rel="icon" type="image/png" href="/static/img/logo-datatutor.png"/>
+<script src="https://modao.cc/agent-py/static/source/js/tailwindcss.js"></script>
+<script src="https://modao.cc/agent-py/static/source/js/iconify-icon.min.js"></script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; background: #0F0B1F; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes fade-in-up { from { transform: translateY(25px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 20px rgba(79,70,229,0.15); } 50% { box-shadow: 0 0 40px rgba(79,70,229,0.35); } }
+
+    .card-hover { transition: all 0.35s cubic-bezier(0.4,0,0.2,1); }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(79,70,229,0.25); border-color: rgba(129,140,248,0.4); }
+    .card-hover:hover .card-icon { transform: scale(1.1); }
+
+    .card-icon { transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
+
+    .shimmer::after {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+        animation: shimmer 2s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    .progress-ring { transition: stroke-dashoffset 1s ease; }
+
+    .logo-glow { filter: drop-shadow(0 0 25px rgba(99,102,241,0.5)); }
+
+    .dot-bg { background-image: radial-gradient(circle, rgba(129,140,248,0.08) 1px, transparent 1px); background-size: 32px 32px; }
+    .course-card { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    .course-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.3); }
+    .progress-bar-animated { background: linear-gradient(90deg, #6366f1, #8b5cf6, #6366f1); background-size: 200% 100%; animation: progress-shift 2s ease infinite; }
+    @keyframes progress-shift { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+</style>
+</head>
+<body class="min-h-screen text-white dot-bg">
+
+<!-- 顶部导航 -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-[#0F0B1F]/80 backdrop-blur-xl border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3 logo-glow">
+            <img src="/static/img/logo-datatutor.png" alt="DataTutor" class="h-9 w-9 rounded-lg">
+            <span class="text-xl font-extrabold tracking-tight">DataTutor</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="hidden lg:flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 focus-within:border-indigo-400 focus-within:bg-white/10 transition-all">
+                <iconify-icon class="text-slate-500 mr-2" icon="lucide:search"></iconify-icon>
+                <input class="bg-transparent text-sm outline-none w-40 text-white placeholder-slate-500" placeholder="搜索知识点..." type="text" id="header-search" onkeydown="if(event.key==='Enter')searchKnowledge()"/>
+            </div>
+            <div class="relative hidden lg:block">
+                <button class="flex items-center gap-1 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-white/10 transition-all" onclick="document.getElementById('dl-popover').classList.toggle('hidden')">
+                    <iconify-icon icon="lucide:download" class="text-sm"></iconify-icon> 组件
+                </button>
+                <div class="hidden absolute top-full right-0 mt-2 bg-[#1A1535] border border-white/10 rounded-xl shadow-2xl z-50 p-3 w-48" id="dl-popover">
+                    <div class="grid grid-cols-2 gap-1">
+                        <a href="https://hadoop.apache.org/releases.html" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Hadoop</a>
+                        <a href="https://hive.apache.org/downloads.html" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Hive</a>
+                        <a href="https://hbase.apache.org/downloads.html" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">HBase</a>
+                        <a href="https://spark.apache.org/downloads.html" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Spark</a>
+                        <a href="https://kafka.apache.org/downloads" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Kafka</a>
+                        <a href="https://zookeeper.apache.org/releases.html" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">ZK</a>
+                        <a href="https://flink.apache.org/downloads.html" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Flink</a>
+                        <a href="https://flume.apache.org/download.html" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Flume</a>
+                        <a href="https://storm.apache.org/downloads.html" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Storm</a>
+                        <a href="https://sqoop.apache.org/" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Sqoop</a>
+                    </div>
+                </div>
+            </div>
+            <button class="relative p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                <iconify-icon class="text-xl" icon="lucide:bell"></iconify-icon>
+                <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0F0B1F]"></span>
+            </button>
+            <button class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                <iconify-icon class="text-xl" icon="lucide:settings"></iconify-icon>
+            </button>
+            <div class="relative ml-2">
+                <button class="flex items-center gap-2 p-1 pl-1 pr-2 hover:bg-white/10 rounded-full border border-white/10 transition-all" id="user-menu-btn" onclick="toggleUserMenu()">
+                    <img alt="User" class="w-7 h-7 rounded-full object-cover border border-indigo-400/30" src="https://modao.cc/agent-py/media/generated_images/2026-06-26/a8854783ac184603b89311d2a4851970.jpg"/>
+                    <span class="text-sm font-medium text-slate-300" id="display-username">学生</span>
+                    <iconify-icon class="text-slate-500 text-xs" icon="lucide:chevron-down"></iconify-icon>
+                </button>
+                <div class="hidden absolute right-0 mt-2 w-48 bg-[#1A1535] rounded-xl shadow-xl border border-white/10 py-2 z-50" id="user-menu">
+                    <div class="px-4 py-2 border-b border-white/5">
+                        <div class="text-xs text-slate-500">学号</div>
+                        <div class="text-sm text-slate-300 font-mono" id="menu-student-id">--</div>
+                    </div>
+                    <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5" href="profile.html">
+                        <iconify-icon icon="lucide:user-circle"></iconify-icon> 个人信息
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer" onclick="document.getElementById('user-menu').classList.add('hidden');showMyReports()">
+                        <iconify-icon icon="lucide:file-bar-chart"></iconify-icon> 我的报告
+                    </a>
+                    <div class="h-[1px] bg-white/10 my-1"></div>
+                    <a class="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 cursor-pointer" onclick="API.logout()">
+                        <iconify-icon icon="lucide:log-out"></iconify-icon> 退出登录
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 主内容 -->
+<main class="max-w-6xl mx-auto px-6 pt-28 pb-16">
+    <!-- 欢迎区 -->
+    <div class="text-center mb-8 animate-fade-in-up" style="animation: fade-in-up 0.6s ease-out forwards;">
+        <div class="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-400/20 px-4 py-1.5 rounded-full mb-4 text-xs text-indigo-300">
+            <iconify-icon icon="lucide:zap"></iconify-icon>
+            <span>今日推荐：Hadoop 入门与实战</span>
+        </div>
+        <h1 class="text-3xl font-black mb-2">
+            选择你的<span class="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">实训章节</span>
+        </h1>
+        <p class="text-slate-500 text-sm max-w-md mx-auto">每个章节包含多个子任务，DataTutor 全程护航。</p>
+        <button class="mt-3 px-4 py-1.5 bg-indigo-500/10 border border-indigo-400/20 rounded-full text-xs text-indigo-300 hover:bg-indigo-500/20 transition" onclick="showClassJoin()">
+            <iconify-icon icon="lucide:users" class="mr-1 align-middle"></iconify-icon>加入班级
+        </button>
+        <div class="hidden mt-2" id="class-name-badge"><span class="text-xs text-indigo-300">当前班级：</span><span class="text-xs font-semibold text-indigo-200" id="user-class-name"></span></div>
+    </div>
+
+    <!-- 章节卡片 -->
+    <div>
+        <!-- 骨架屏 / 加载中 -->
+        <div id="courses-loading">
+            <div class="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-10 mb-4 text-center animate-pulse">
+                <div class="w-16 h-16 bg-white/5 rounded-2xl mx-auto mb-5"></div>
+                <div class="h-5 bg-white/5 rounded-lg w-2/3 mx-auto mb-3"></div>
+                <div class="h-3 bg-white/5 rounded w-full mx-auto mb-4"></div>
+                <div class="h-2 bg-white/5 rounded-full"></div>
+            </div>
+            <div class="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-10 mb-4 text-center animate-pulse" style="animation-delay:0.1s">
+                <div class="w-16 h-16 bg-white/5 rounded-2xl mx-auto mb-5"></div>
+                <div class="h-5 bg-white/5 rounded-lg w-1/2 mx-auto mb-3"></div>
+                <div class="h-3 bg-white/5 rounded w-5/6 mx-auto mb-4"></div>
+                <div class="h-2 bg-white/5 rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- 空状态 -->
+        <div id="courses-empty" class="hidden text-center py-16">
+            <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
+                <iconify-icon class="text-slate-500 text-3xl" icon="lucide:book-open"></iconify-icon>
+            </div>
+            <p class="text-slate-400 text-sm mb-1">暂无可用课程</p>
+            <p class="text-slate-600 text-xs">课程内容正在准备中，请稍后再来</p>
+        </div>
+
+        <!-- 错误状态 -->
+        <div id="courses-error" class="hidden text-center py-16">
+            <div class="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+                <iconify-icon class="text-red-400 text-3xl" icon="lucide:alert-triangle"></iconify-icon>
+            </div>
+            <p class="text-red-400 text-sm mb-3" id="error-text">加载失败，请检查网络连接</p>
+            <button class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-white text-sm font-semibold transition-all" onclick="loadCourses()">重新加载</button>
+        </div>
+
+        <!-- 课程列表容器 -->
+        <div id="courses-list" class="hidden"></div>
+    </div>
+</main>
+
+<script src="static/js/api.js"></script>
+<script>
+    // 显示用户名和学号
+    (function () {
+        const user = API.getCurrentUser();
+        if (user && user.username) {
+            document.getElementById('display-username').innerText = user.username;
+            // 显示学号
+            const sid = user.student_id || user.username;
+            const sidEl = document.getElementById('menu-student-id');
+            if (sidEl) sidEl.innerText = sid;
+        }
+    })();
+
+    // ========== 课程列表加载 ==========
+    function loadCourses() {
+        const loading = document.getElementById('courses-loading');
+        const empty = document.getElementById('courses-empty');
+        const error = document.getElementById('courses-error');
+        const list = document.getElementById('courses-list');
+
+        loading.classList.remove('hidden');
+        empty.classList.add('hidden');
+        error.classList.add('hidden');
+        list.classList.add('hidden');
+
+        API.getClassList().then(function(cr) {
+            var classes = cr.classes || [];
+            if (classes.length > 0) {
+                // Joined a class → show class courses, skip modal
+                window._hasClass = true;
+                var classId = classes[0].id;
+                document.getElementById('user-class-name').innerText = classes[0].name;
+                document.getElementById('class-name-badge').classList.remove('hidden');
+                return API.getClassCourses(classId).then(function(r) {
+                    return { courses: r.courses || [] };
+                });
+            }
+            window._hasClass = false;
+            return API.getCourses('student');
+        }).then(function(result) {
+            loading.classList.add('hidden');
+            if (result.error) {
+                error.classList.remove('hidden');
+                document.getElementById('error-text').innerText = result.error;
+                return;
+            }
+            const courses = result.courses || result.data || result;
+            if (!courses || courses.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            renderCourses(courses);
+            list.classList.remove('hidden');
+        }).catch(err => {
+            loading.classList.add('hidden');
+            error.classList.remove('hidden');
+            document.getElementById('error-text').innerText = '网络连接失败，请检查后端服务是否启动';
+        });
+    }
+
+    function renderCourses(courses) {
+        const container = document.getElementById('courses-list');
+        container.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+
+        const techIcons = {'hive':'simple-icons:apachehive','hadoop':'simple-icons:apachehadoop','spark':'simple-icons:apachespark','hbase':'simple-icons:apachehbase','kafka':'simple-icons:apachekafka','zookeeper':'simple-icons:apache','hdfs':'simple-icons:apachehadoop','yarn':'simple-icons:apache','flume':'simple-icons:apache','sqoop':'simple-icons:apache','hql':'simple-icons:apachehive','pig':'simple-icons:apache','mapreduce':'simple-icons:apachehadoop','doris':'simple-icons:apache','centos':'lucide:server','linux':'lucide:terminal'};
+        const defaultIcons = ['lucide:hard-drive','lucide:cpu','lucide:database','lucide:zap','lucide:radio'];
+        const colors = [
+            'from-indigo-500/30 to-violet-600/30 border-indigo-400/30 text-indigo-400',
+            'from-emerald-500/30 to-teal-600/30 border-emerald-400/30 text-emerald-400',
+            'from-amber-500/30 to-orange-600/30 border-amber-400/30 text-amber-400',
+            'from-sky-500/30 to-cyan-600/30 border-sky-400/30 text-sky-400',
+            'from-rose-500/30 to-pink-600/30 border-rose-400/30 text-rose-400',
+        ];
+
+        let html = '';
+        courses.forEach((course, i) => {
+            const name = course.name || '未知课程';
+            const desc = course.description || '';
+            const taskCount = course.subtask_count || 0;
+            const progressPct = course.progress_percent || 0;
+            let icon = defaultIcons[i % defaultIcons.length];
+            Object.keys(techIcons).forEach(function(k) { if (name.toLowerCase().indexOf(k) >= 0) icon = techIcons[k]; });
+            const color = colors[i % colors.length];
+            const progressColor = progressPct >= 100 ? 'from-emerald-500 to-teal-500' : progressPct > 0 ? 'from-indigo-500 to-violet-500' : 'from-slate-600 to-slate-500';
+
+            html += `
+            <div class="bg-white/[0.04] border border-white/[0.06] rounded-2xl p-6 cursor-pointer hover:bg-white/[0.08] hover:border-indigo-400/30 hover:-translate-y-1 transition-all duration-300 group"
+                 ${window._hasClass 
+                    ? `onclick="location.href='main.html?course_id=${course.id || 0}'"`
+                    : `onclick="openCourseModal('${jsString(name)}','main.html',${course.id || 0},${course.is_public})"`
+                 }>
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br ${color} rounded-xl flex items-center justify-center flex-shrink-0 border group-hover:scale-110 transition-transform">
+                        <iconify-icon class="${color.split(' ')[3]} text-xl" icon="${icon}"></iconify-icon>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] text-slate-600 font-mono bg-white/5 px-1.5 py-0.5 rounded">ID: ${course.id || 0}</span>
+                            <span class="text-xs text-slate-500">${taskCount} 个子任务</span>
+                            ${progressPct > 0 ? '<span class="text-xs text-indigo-400">' + progressPct + '%</span>' : ''}
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1 truncate">${escapeHtml(name)}</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">${escapeHtml(desc)}</p>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full mt-3 overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-700 ${progressPct > 0 && progressPct < 100 ? 'progress-bar-animated' : ''}" style="width:${progressPct}%;background:${progressPct >= 100 ? 'linear-gradient(90deg,#10b981,#34d399)' : progressPct > 0 ? 'linear-gradient(90deg,#6366f1,#8b5cf6)' : '#475569'}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function jsString(str) {
+        // 安全地转义为 JS 单引号字符串（用于 onclick 等内联属性）
+        return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
+    }
+
+    // ========== 用户菜单 ==========
+    function toggleUserMenu() {
+        var menu = document.getElementById('user-menu');
+        menu.classList.toggle('hidden');
+    }
+    window.addEventListener('click', function(e) {
+        var btn = document.getElementById('user-menu-btn');
+        var menu = document.getElementById('user-menu');
+        if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.add('hidden');
+        }
+    });
+
+    // ========== 课程弹窗 ==========
+    let currentCourseId = null;
+
+    function openCourseModal(courseName, targetUrl, courseId, isPublic) {
+        currentCourseId = courseId;
+        const overlay = document.getElementById('course-modal-overlay');
+        const modal = document.getElementById('course-modal');
+        const title = document.getElementById('modal-course-title');
+        if (!overlay || !modal || !title) return;
+        title.innerText = courseName;
+
+        // 已加入过班级 → 直接进入实训
+        var enrolled = JSON.parse(localStorage.getItem('dt_joined_' + (API.getCurrentUser()?.id || 0)) || '{}');
+        if (enrolled[courseId]) {
+            window.location.href = targetUrl + '?course_id=' + courseId;
+            return;
+        }
+
+        // 显示加入弹窗（公开和班级课程都走）
+        document.getElementById('modal-locked').classList.add('hidden');
+        document.getElementById('modal-options').classList.remove('hidden');
+        document.getElementById('modal-class-form').classList.add('hidden');
+
+        // 更新链接
+        var joinBtn = document.getElementById('modal-join-btn');
+        var soloBtn = document.getElementById('modal-solo-btn');
+        if (joinBtn) joinBtn.href = targetUrl + '?course_id=' + courseId;
+        if (soloBtn) soloBtn.href = targetUrl + '?course_id=' + courseId + '&mode=solo';
+
+        overlay.classList.remove('hidden');
+        setTimeout(function() { modal.style.transform = 'translateY(0)'; modal.style.opacity = '1'; }, 10);
+    }
+
+    function closeCourseModal() {
+        var overlay = document.getElementById('course-modal-overlay');
+        var modal = document.getElementById('course-modal');
+        if (!overlay || !modal) return;
+        modal.style.transform = 'translateY(20px)'; modal.style.opacity = '0';
+        setTimeout(function() { overlay.classList.add('hidden'); }, 300);
+    }
+
+    function showClassForm() {
+        document.getElementById('modal-options').classList.add('hidden');
+        document.getElementById('modal-class-form').classList.remove('hidden');
+        document.getElementById('class-join-msg').classList.add('hidden');
+    }
+
+    function backToOptions() {
+        document.getElementById('modal-class-form').classList.add('hidden');
+        document.getElementById('modal-options').classList.remove('hidden');
+    }
+
+    function joinClass() {
+        var classCode = document.getElementById('class-code');
+        if (!classCode) return;
+        var code = classCode.value.trim();
+        if (!code) return;
+
+        var confirmBtn = document.querySelector('#modal-class-form button.bg-indigo-600');
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = '加入中...';
+
+        API.joinClass(code, '').then(function(result) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = '确认加入';
+            var m = document.getElementById('class-join-msg');
+            m.classList.remove('text-red-400');
+            m.classList.add('text-emerald-400');
+            m.innerHTML = '<iconify-icon icon="lucide:check-circle"></iconify-icon> 加入成功，正在进入实训...';
+            m.classList.remove('hidden');
+            var target = 'main.html?course_id=' + (result.course_id || currentCourseId);
+            setTimeout(function() { window.location.href = target; }, 600);
+        }).catch(function(err) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = '确认加入';
+            var m = document.getElementById('class-join-msg');
+            m.classList.remove('text-emerald-400');
+            m.classList.add('text-red-400');
+            m.innerHTML = '<iconify-icon icon="lucide:alert-circle"></iconify-icon> ' + (err.message || '网络错误，请重试');
+            m.classList.remove('hidden');
+        });
+    }
+
+    // ========== 知识点搜索 ==========
+    async function searchKnowledge() {
+        var inp = document.getElementById('header-search');
+        var q = inp.value.trim();
+        if (!q) return;
+        document.getElementById('search-modal-title').innerText = '搜索：' + q;
+        document.getElementById('search-modal-content').innerHTML = '<div class="text-center py-12"><iconify-icon icon="lucide:loader" class="animate-spin text-3xl text-indigo-400"></iconify-icon><p class="text-slate-500 text-sm mt-3">AI 正在查询知识库...</p></div>';
+        document.getElementById('search-modal').classList.remove('hidden');
+        try {
+            var data = await API.aiKnowledge([{role:'user',content:q}]);
+            var reply = data.reply || '暂无结果';
+            document.getElementById('search-modal-content').innerHTML = '<div class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">' + reply + '</div>';
+        } catch(e) {
+            document.getElementById('search-modal-content').innerHTML = '<div class="text-red-400 text-sm text-center py-8">搜索失败: ' + e.message + '</div>';
+        }
+    }
+    function closeSearchModal() {
+        document.getElementById('search-modal').classList.add('hidden');
+    }
+
+    // === 加入班级 ===
+    function showClassJoin() {
+        document.getElementById('class-join-modal').classList.remove('hidden');
+    }
+    function closeClassJoinModal() {
+        document.getElementById('class-join-modal').classList.add('hidden');
+    }
+    async function joinClassSubmit() {
+        var code = document.getElementById('class-code-input').value.trim();
+        var tname = document.getElementById('teacher-name-input').value.trim();
+        if (!code || !tname) return;
+        var btn = document.getElementById('class-join-confirm');
+        btn.disabled = true; btn.innerText = '加入中...';
+        try {
+            var data = await API.joinClass(code, tname);
+            alert(data.message || '加入成功！');
+            closeClassJoinModal();
+            location.reload();
+        } catch(e) {
+            alert('加入失败: ' + e.message);
+            btn.disabled = false; btn.innerText = '确认加入';
+        }
+    }
+
+    // === 我的报告 ===
+    async function showMyReports() {
+        var modal = document.getElementById('report-modal');
+        var content = document.getElementById('report-list-content');
+        modal.classList.remove('hidden');
+        content.innerHTML = '<div class="text-center py-8 text-slate-500">加载中...</div>';
+        try {
+            var data = await API.listReports();
+            if (data.reports && data.reports.length > 0) {
+                var html = '';
+                data.reports.forEach(function(r) {
+                    html += '<div class="bg-white/5 border border-white/10 rounded-xl p-4 mb-3 hover:bg-white/10 cursor-pointer" onclick="viewReportDetail(' + r.id + ')">' +
+                        '<div class="flex items-center justify-between mb-1"><span class="text-sm font-semibold">' + r.course_name + '</span>' +
+                        '<button class="text-xs text-indigo-400 hover:text-indigo-300" onclick="event.stopPropagation();API.downloadReport(' + r.id + ')">下载</button></div>' +
+                        '<div class="text-xs text-slate-500">' + r.created_at + ' · ' + r.total_time_hours + '小时</div>' +
+                        '<div class="text-xs text-slate-400 mt-2 line-clamp-2">' + r.preview + '</div></div>';
+                });
+                content.innerHTML = html;
+            } else {
+                content.innerHTML = '<div class="text-center py-8 text-slate-500">暂无实训报告</div>';
+            }
+        } catch(e) {
+            content.innerHTML = '<div class="text-red-400 text-center py-8">加载失败: ' + e.message + '</div>';
+        }
+    }
+    async function viewReportDetail(reportId) {
+        // 复用已有列表的 modal，加载完整内容
+        var content = document.getElementById('report-list-content');
+        content.innerHTML = '<div class="text-center py-8 text-slate-500">加载中...</div>';
+        try {
+            var data = await API.listReports();
+            var r = (data.reports || []).find(function(rp) { return rp.id === reportId; });
+            if (r) {
+                // 重新请求生成来获取完整内容 - 简单方案：直接重新生成内容
+                content.innerHTML = '<div class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">' + r.preview.replace('...','') + '</div><button class="mt-3 text-xs text-indigo-400" onclick="showMyReports()">← 返回列表</button>';
+            }
+        } catch(e) { }
+    }
+    function closeReportModal() { document.getElementById('report-modal').classList.add('hidden'); }
+
+    // ========== 页面初始化 ==========
+    loadCourses();
+</script>
+
+<!-- 课程选择弹窗 -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity" id="course-modal-overlay" onclick="closeCourseModal()">
+    <div class="bg-[#1A1535] rounded-2xl border border-white/10 w-full max-w-md p-8 shadow-2xl transition-all duration-300" style="transform: translateY(20px); opacity: 0;" id="course-modal" onclick="event.stopPropagation()">
+        <button class="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors" onclick="closeCourseModal()">
+            <iconify-icon class="text-xl" icon="lucide:x"></iconify-icon>
+        </button>
+
+        <div class="text-center mb-5">
+            <div class="w-14 h-14 bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-400/20">
+                <iconify-icon class="text-indigo-400 text-2xl" icon="lucide:graduation-cap"></iconify-icon>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-1" id="modal-course-title">Hadoop 入门与实战</h2>
+            <p class="text-slate-500 text-xs">选择你的学习模式</p>
+        </div>
+
+        <!-- 锁定的课程 -->
+        <div id="modal-locked" class="hidden text-center py-6">
+            <div class="w-14 h-14 bg-slate-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <iconify-icon class="text-slate-400 text-2xl" icon="lucide:lock"></iconify-icon>
+            </div>
+            <p class="text-slate-400 text-sm">该章节尚未解锁</p>
+            <p class="text-slate-600 text-xs mt-1">请先完成前置章节后解锁</p>
+            <button class="mt-5 px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-slate-400 text-sm hover:bg-white/10 transition-all" onclick="closeCourseModal()">知道了</button>
+        </div>
+
+        <!-- 选项 -->
+        <div id="modal-options" class="space-y-3">
+            <div class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 cursor-pointer hover:bg-indigo-500/10 hover:border-indigo-400/30 transition-all" onclick="showClassForm()">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-none">
+                        <iconify-icon class="text-indigo-400" icon="lucide:users"></iconify-icon>
+                    </div>
+                    <div class="text-left">
+                        <div class="text-white font-semibold text-sm">加入班级</div>
+                        <div class="text-slate-500 text-xs">输入班级号和老师姓名，与同学一起学习</div>
+                    </div>
+                </div>
+            </div>
+            <a id="modal-solo-btn" class="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 cursor-pointer hover:bg-violet-500/10 hover:border-violet-400/30 transition-all flex items-center gap-3" href="main.html">
+                <div class="w-9 h-9 bg-violet-500/20 rounded-lg flex items-center justify-center flex-none">
+                    <iconify-icon class="text-violet-400" icon="lucide:user-check"></iconify-icon>
+                </div>
+                <div class="text-left">
+                    <div class="text-white font-semibold text-sm">个人学习</div>
+                    <div class="text-slate-500 text-xs">独立完成实训，进度数据仅自己可见</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- 班级表单 -->
+        <div id="modal-class-form" class="hidden space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">班级号</label>
+                <input id="class-code" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-indigo-400 focus:outline-none transition-all" placeholder="例如：DS2024-03" type="text"/>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1.5">老师姓名</label>
+                <input id="teacher-name" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-indigo-400 focus:outline-none transition-all" placeholder="例如：张老师" type="text"/>
+            </div>
+            <div id="class-join-msg" class="hidden text-center text-emerald-400 text-sm font-medium">
+                <iconify-icon icon="lucide:check-circle"></iconify-icon> 加入成功，正在进入实训...
+            </div>
+            <div class="flex gap-3">
+                <button class="flex-1 py-2.5 bg-white/5 border border-white/10 rounded-xl text-slate-400 text-sm hover:bg-white/10 transition-all" onclick="backToOptions()">返回</button>
+                <button class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-white text-sm font-semibold transition-all" onclick="joinClass()">确认加入</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 搜索知识弹窗 -->
+<div class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" id="search-modal" onclick="closeSearchModal()">
+    <div class="bg-[#1A1535] rounded-2xl border border-white/10 w-full max-w-2xl max-h-[70vh] flex flex-col shadow-2xl" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between p-5 border-b border-white/10 flex-none">
+            <div class="flex items-center gap-2">
+                <iconify-icon class="text-indigo-400" icon="lucide:search"></iconify-icon>
+                <span class="text-sm font-semibold" id="search-modal-title">知识搜索</span>
+            </div>
+            <button class="text-slate-500 hover:text-white" onclick="closeSearchModal()">
+                <iconify-icon class="text-xl" icon="lucide:x"></iconify-icon>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6" id="search-modal-content">
+            <div class="text-slate-500 text-sm text-center py-8">输入关键词后按回车查询</div>
+        </div>
+    </div>
+</div>
+<!-- === 我的报告弹窗 === -->
+<div class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" id="report-modal" onclick="closeReportModal()">
+    <div class="bg-[#1A1535] rounded-2xl border border-white/10 w-full max-w-2xl max-h-[75vh] flex flex-col shadow-2xl" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between p-5 border-b border-white/10 flex-none">
+            <div class="flex items-center gap-2">
+                <iconify-icon class="text-emerald-400" icon="lucide:file-bar-chart"></iconify-icon>
+                <span class="text-sm font-semibold">我的实训报告</span>
+            </div>
+            <button class="text-slate-500 hover:text-white" onclick="closeReportModal()"><iconify-icon class="text-xl" icon="lucide:x"></iconify-icon></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6" id="report-list-content"></div>
+    </div>
+</div>
+<!-- === 加入班级弹窗 === -->
+<div class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" id="class-join-modal" onclick="closeClassJoinModal()">
+    <div class="bg-[#1A1535] rounded-2xl border border-white/10 w-full max-w-sm p-6 shadow-2xl" onclick="event.stopPropagation()">
+        <h3 class="text-sm font-semibold mb-4 flex items-center gap-2"><iconify-icon class="text-indigo-400" icon="lucide:users"></iconify-icon>加入班级</h3>
+        <input class="w-full mb-3 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-indigo-400" placeholder="班级号" id="class-code-input"/>
+        <input class="w-full mb-4 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-indigo-400" placeholder="老师姓名" id="teacher-name-input"/>
+        <button class="w-full py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700" id="class-join-confirm" onclick="joinClassSubmit()">确认加入</button>
+    </div>
+</div>
+</body>
+</html>
