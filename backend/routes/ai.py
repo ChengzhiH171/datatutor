@@ -198,6 +198,18 @@ def ai_chat(current_user):
 
         # 缓存结果（成员B）
         redis_client.cache_ai_reply(current_user.id, cache_scope, user_input, result['content'])
+        
+        # 自动保存对话到数据库（供报告生成使用）
+        subtask_id = data.get('subtask_id')
+        if subtask_id and current_user.role == 'student':
+            try:
+                from models import ChatMessage, db as chat_db
+                chat_db.session.add(ChatMessage(student_id=current_user.id, subtask_id=subtask_id, role='user', content=user_input[:2000]))
+                chat_db.session.add(ChatMessage(student_id=current_user.id, subtask_id=subtask_id, role='assistant', content=result['content'][:2000]))
+                chat_db.session.commit()
+            except Exception:
+                pass
+        
         return jsonify({'reply': result['content'], 'usage': result['usage']})
     except Exception as e:
         print(f'[ai_chat ERROR] {e}')
