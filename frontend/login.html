@@ -196,32 +196,42 @@
                 <label class="text-sm text-slate-600" for="remember">记住登录状态</label>
             </div>
 
-            <div class="space-y-4 hidden" id="register-fields">
-                <div id="register-extra-field">
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5" id="register-extra-label">学号</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                            <iconify-icon icon="lucide:id-card"></iconify-icon>
-                        </span>
-                        <input class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl input-focus-ring transition-all text-sm" placeholder="请输入学号" type="text" id="register-extra"/>
+            <div class="space-y-3 hidden" id="register-fields">
+                <!-- 返回登录入口（注册模式专属，明显可见） -->
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-slate-500">填写以下信息完成注册</span>
+                    <a class="text-xs text-indigo-600 hover:text-indigo-700 font-semibold cursor-pointer inline-flex items-center gap-1" onclick="toggleMode()">
+                        <iconify-icon icon="lucide:arrow-left"></iconify-icon> 返回登录
+                    </a>
+                </div>
+                <!-- 学号/工号 与 确认密码 并排，压缩表单高度 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div id="register-extra-field">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" id="register-extra-label">学号</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                <iconify-icon icon="lucide:id-card"></iconify-icon>
+                            </span>
+                            <input class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl input-focus-ring transition-all text-sm" placeholder="请输入学号" type="text" id="register-extra"/>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">确认密码</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                <iconify-icon icon="lucide:lock-keyhole"></iconify-icon>
+                            </span>
+                            <input class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl input-focus-ring transition-all text-sm" placeholder="再次输入密码" type="password" id="confirm-password"/>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">确认密码</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
-                            <iconify-icon icon="lucide:lock-keyhole"></iconify-icon>
-                        </span>
-                        <input class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl input-focus-ring transition-all text-sm" placeholder="再次输入密码" type="password" id="confirm-password"/>
-                    </div>
-                </div>
-                <!-- ===== 验证码（新增） ===== -->
+                <!-- ===== 验证码 ===== -->
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1.5">验证码</label>
                     <div class="flex gap-2 items-center">
                         <img id="captcha-img" src="" alt="验证码" class="captcha-img h-11 rounded-lg border border-slate-200 cursor-pointer" onclick="refreshCaptcha()" style="width:120px"/>
                         <span class="text-xs text-slate-400 cursor-pointer hover:text-indigo-600" onclick="refreshCaptcha()">换一张</span>
-                        <input class="flex-1 pl-3 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl input-focus-ring transition-all text-sm" placeholder="4位数字" type="text" id="captcha-code" maxlength="4" autocomplete="off"/>
+                        <input class="flex-1 pl-3 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl input-focus-ring transition-all text-sm" placeholder="4位数字" type="text" id="captcha-code" maxlength="4" autocomplete="off"/>
                     </div>
                 </div>
             </div>
