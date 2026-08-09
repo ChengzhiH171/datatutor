@@ -99,7 +99,7 @@
 var homePage = 'hub.html';
 (function() {
   var user = API.getCurrentUser();
-  if (!user) { window.location.href = 'index.html'; return; }
+  if (!user) { window.location.href = 'login.html'; return; }
   // 教师回 teacher.html，学生回 hub.html
   if (user.role === 'teacher') homePage = 'teacher.html';
   // 更新所有返回链接和"去选课"文字
@@ -117,11 +117,17 @@ function setNum(id, v) {
   if (el) el.innerText = (v === undefined || v === null || isNaN(v)) ? 0 : Number(v);
 }
 
-(function loadStats() {
+function loadStats() {
   setNum('stat-completed', 0); setNum('stat-hours', 0); setNum('stat-rounds', 0); setNum('profile-level', 0);
-  API.getCourses('student').then(function(r) {
+  // 并行拉取课程列表 + 个人信息统计
+  Promise.all([
+    API.getCourses('student').catch(function(){ return { courses: [] }; }),
+    apiFetch('/auth/profile').catch(function(){ return {}; })
+  ]).then(function(results) {
+    var r = results[0];
+    var profile = results[1];
     var courses = (r && r.courses) ? r.courses : (Array.isArray(r) ? r : []);
-    var completed = 0, rounds = 0, hours = 0, html = '';
+    var completed = 0, rounds = (profile.total_rounds || 0), hours = (profile.total_hours || 0), html = '';
     courses.slice(0, 8).forEach(function(c) {
       var pct = c.progress_percent || 0;
       var color = pct >= 100 ? 'bg-emerald-500' : pct > 60 ? 'bg-indigo-500' : pct > 0 ? 'bg-amber-500' : 'bg-slate-600';
@@ -136,8 +142,10 @@ function setNum(id, v) {
   }).catch(function() {
     document.getElementById('courses-list').innerHTML = '<div class="text-center py-6 text-slate-500 text-sm">加载失败</div>';
   });
-  var refreshTimer = setInterval(function() { loadStats(); }, 10000);
-})();
+}
+// 初始加载 & 每10秒刷新
+loadStats();
+setInterval(loadStats, 10000);
 
 function editName() {
   var name = prompt('输入新显示名称：', document.getElementById('profile-name').innerText);
