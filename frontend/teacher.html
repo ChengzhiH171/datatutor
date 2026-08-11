@@ -79,6 +79,7 @@
           <div class="px-4 py-3 border-b border-slate-100">
             <div class="text-sm font-semibold text-slate-800" id="menu-fullname">教师</div>
             <div class="text-xs text-slate-400 mt-0.5" id="menu-role">教师</div>
+            <div class="text-xs text-slate-400 mt-0.5" id="menu-tid">—</div>
           </div>
           <button class="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2" onclick="my_showProfile()"><iconify-icon icon="lucide:user" class="text-slate-400"></iconify-icon> 个人信息</button>
           <button class="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2" onclick="my_logout()"><iconify-icon icon="lucide:log-out" class="text-slate-400"></iconify-icon> 退出登录</button>
@@ -234,6 +235,7 @@
       <div><label class="block text-xs font-semibold text-slate-500 mb-1">性别</label><select class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:border-indigo-400 outline-none" id="profile-gender"><option value="">请选择</option><option value="男">男</option><option value="女">女</option></select></div>
       <div><label class="block text-xs font-semibold text-slate-500 mb-1">学校</label><input class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none" id="profile-school"></div>
       <div><label class="block text-xs font-semibold text-slate-500 mb-1">邮箱</label><input class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none" id="profile-email" placeholder="teacher@example.com" type="email"></div>
+      <div><label class="block text-xs font-semibold text-slate-500 mb-1">工号</label><input class="w-full px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-500" id="profile-tid" readonly></div>
     </div>
     <div class="mt-6 flex gap-3 justify-end">
       <button class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg" onclick="my_closeModal('modal-profile')">取消</button>
@@ -257,6 +259,7 @@ window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('teacher-avatar').innerText = name.charAt(0).toUpperCase();
   document.getElementById('menu-fullname').innerText = name;
   document.getElementById('menu-role').innerText = user.role === 'teacher' ? '教师' : '学生';
+  document.getElementById('menu-tid').innerText = '工号: ' + (user.teacher_id || '—');
   // Load profile from API
   apiFetch('/auth/profile').then(function(p) {
     if (p.display_name) {
@@ -264,6 +267,7 @@ window.addEventListener('DOMContentLoaded', function() {
       document.getElementById('teacher-avatar').innerText = p.display_name.charAt(0).toUpperCase();
       document.getElementById('menu-fullname').innerText = p.display_name;
     }
+    document.getElementById('menu-tid').innerText = '工号: ' + (p.teacher_id || user.teacher_id || '—');
   }).catch(function(){});
   my_load();
 });
@@ -277,10 +281,12 @@ function my_showProfile() {
     document.getElementById('profile-gender').value = p.gender || '';
     document.getElementById('profile-school').value = p.school || '';
     document.getElementById('profile-email').value = p.email || '';
+    document.getElementById('profile-tid').value = p.teacher_id || (API.getCurrentUser()||{}).teacher_id || '';
     document.getElementById('profile-avatar').innerText = (p.display_name || '教').charAt(0).toUpperCase();
     document.getElementById('modal-profile').classList.remove('hidden');
   }).catch(function() {
     document.getElementById('profile-name').value = document.getElementById('teacher-name').innerText;
+    document.getElementById('profile-tid').value = (API.getCurrentUser()||{}).teacher_id || '';
     document.getElementById('modal-profile').classList.remove('hidden');
   });
 }
@@ -350,6 +356,21 @@ async function my_deleteClass(id, name) {
   my_renderSidebar();
 }
 
+async function my_deleteCourse(cid, btn) {
+  var card = btn.closest('[data-cname]');
+  var cname = card ? card.dataset.cname : '该课程';
+  if (!confirm('确定删除课程「'+cname+'」？\n将级联清理子任务、进度、对话、报告等数据，不可恢复。')) return;
+  try {
+    await API.deleteCourse(cid);
+    toast('课程已删除', 'success');
+    // 刷新当前班级课程列表
+    if (my_classId) {
+      var cr = await API.getClassCourses(my_classId);
+      my_renderClassCourses(cr.courses || []);
+    }
+  } catch(e) { toast('删除失败: ' + e.message, 'error'); }
+}
+
 // ===== SELECT CLASS =====
 if (API.getCurrentUser() && (API.getCurrentUser().role === 'admin')) {
   var pendingBtn = document.getElementById('admin-pending-btn');
@@ -374,7 +395,7 @@ function my_renderClassCourses(courses) {
     var name = c.name.toLowerCase();
     var icon = 'lucide:book-open';
     Object.keys(icons).forEach(function(k) { if (name.indexOf(k) >= 0) icon = icons[k]; });
-    html += '<div class="bg-white border border-slate-200 rounded-xl p-5 cursor-pointer hover:border-indigo-300 hover:shadow-md transition-all group course-card" onclick="my_openCourse('+c.id+',\''+c.name+'\')"><div class="flex items-start gap-3"><div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center flex-none group-hover:bg-indigo-100 transition-colors"><iconify-icon class="text-indigo-500 text-lg" icon="'+icon+'"></iconify-icon></div><div class="flex-1 min-w-0"><div class="text-sm font-semibold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">'+c.name+'</div><div class="text-xs text-slate-400 mt-1">'+(c.subtask_count||0)+' 个子任务</div></div></div></div>';
+    html += '<div class="bg-white border border-slate-200 rounded-xl p-5 cursor-pointer hover:border-indigo-300 hover:shadow-md transition-all group course-card" data-cname="'+c.name.replace(/"/g,'&quot;')+'" onclick="my_openCourse('+c.id+',\''+c.name+'\')"><div class="flex items-start gap-3"><div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center flex-none group-hover:bg-indigo-100 transition-colors"><iconify-icon class="text-indigo-500 text-lg" icon="'+icon+'"></iconify-icon></div><div class="flex-1 min-w-0"><div class="flex items-center justify-between"><div class="text-sm font-semibold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">'+c.name+'</div><button class="px-2 py-0.5 rounded-full text-xs bg-red-50 text-red-600 hover:bg-red-100 opacity-0 group-hover:opacity-100 transition-opacity" onclick="event.stopPropagation();my_deleteCourse('+c.id+',this)"><iconify-icon icon="lucide:trash-2" class="align-middle"></iconify-icon> 删除</button></div><div class="text-xs text-slate-400 mt-1">'+(c.subtask_count||0)+' 个子任务</div></div></div></div>';
   });
   html += '</div>';
   area.innerHTML = html;
@@ -590,6 +611,7 @@ function my_closeModal(id) { document.getElementById(id).classList.add('hidden')
 if (!API.getClassList) API.getClassList = function(){ return apiFetch('/classes/list'); };
 if (!API.getClassCourses) API.getClassCourses = function(id){ return apiFetch('/courses/class/'+id); };
 if (!API.deleteClass) API.deleteClass = function(id){ return apiFetch('/classes/'+id, { method: 'DELETE' }); };
+if (!API.deleteCourse) API.deleteCourse = function(id){ return apiFetch('/courses/'+id, { method: 'DELETE' }); };
 if (!API.createClass) API.createClass = function(name,code){ return apiFetch('/classes/create', { method: 'POST', body: JSON.stringify({name:name,class_code:code}) }); };
 if (!API.assignCourseToClass) API.assignCourseToClass = function(classId,courseId){ return apiFetch('/classes/assign_course', { method: 'POST', body: JSON.stringify({class_id:classId,course_id:courseId}) }); };
 if (!API.getSubtasks) API.getSubtasks = function(courseId){ return apiFetch('/courses/'+courseId+'/subtasks'); };

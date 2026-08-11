@@ -146,7 +146,7 @@ def stats():
 @token_required
 def get_profile(current_user):
     """获取个人信息及统计数据"""
-    from models import TaskProgress, Subtask, Report, Course
+    from models import TaskProgress, Subtask, Report, Course, ChatMessage
     # 统计完成课程数（优先用 TaskProgress，兜底用 Report）
     completed_ids = db.session.query(TaskProgress.subtask_id).filter(
         TaskProgress.student_id == current_user.id,
@@ -162,6 +162,11 @@ def get_profile(current_user):
     # 总实训时长
     reports = Report.query.filter_by(student_id=current_user.id).all()
     total_hours = round(sum(r.total_time_hours for r in reports), 1)
+    # 对话轮次 — 以 chat_messages 中 role='user' 的条数为准
+    total_rounds = ChatMessage.query.filter_by(
+        student_id=current_user.id,
+        role='user'
+    ).count()
     # 报告数
     report_count = len(reports)
     return jsonify({
@@ -175,6 +180,7 @@ def get_profile(current_user):
         'email': current_user.email or '',
         'course_count': course_count,
         'total_hours': total_hours,
+        'total_rounds': total_rounds,
         'report_count': report_count,
         'student_id': current_user.student_id or '',
         'teacher_id': current_user.teacher_id or '',
