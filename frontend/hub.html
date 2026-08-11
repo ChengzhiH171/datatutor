@@ -74,13 +74,38 @@
                     </div>
                 </div>
             </div>
-            <button class="relative p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                <iconify-icon class="text-xl" icon="lucide:bell"></iconify-icon>
-                <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0F0B1F]"></span>
-            </button>
-            <button class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                <iconify-icon class="text-xl" icon="lucide:settings"></iconify-icon>
-            </button>
+            <!-- 消息中心（铃铛） -->
+            <div class="relative">
+                <button class="relative p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="togglePopover('msg-popover')">
+                    <iconify-icon class="text-xl" icon="lucide:bell"></iconify-icon>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0F0B1F]"></span>
+                </button>
+                <div class="hidden absolute top-full right-0 mt-2 w-64 bg-[#1A1535] rounded-xl shadow-xl border border-white/10 py-2 z-50" id="msg-popover">
+                    <div class="px-4 py-2 border-b border-white/5 flex items-center gap-2">
+                        <iconify-icon class="text-indigo-400" icon="lucide:bell"></iconify-icon>
+                        <span class="text-sm font-semibold text-white">消息中心</span>
+                    </div>
+                    <div class="px-4 py-6 text-center">
+                        <iconify-icon class="text-slate-600 text-2xl mx-auto mb-2" icon="lucide:bell-off"></iconify-icon>
+                        <p class="text-slate-500 text-xs">暂无新消息</p>
+                    </div>
+                </div>
+            </div>
+            <!-- 设置 -->
+            <div class="relative">
+                <button class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="togglePopover('settings-popover')">
+                    <iconify-icon class="text-xl" icon="lucide:settings"></iconify-icon>
+                </button>
+                <div class="hidden absolute top-full right-0 mt-2 w-40 bg-[#1A1535] rounded-xl shadow-xl border border-white/10 py-2 z-50" id="settings-popover">
+                    <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5" href="profile.html">
+                        <iconify-icon icon="lucide:user-circle"></iconify-icon> 账号
+                    </a>
+                    <div class="h-[1px] bg-white/10 my-1"></div>
+                    <a class="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 cursor-pointer" onclick="API.logout()">
+                        <iconify-icon icon="lucide:log-out"></iconify-icon> 退出
+                    </a>
+                </div>
+            </div>
             <div class="relative ml-2">
                 <button class="flex items-center gap-2 p-1 pl-1 pr-2 hover:bg-white/10 rounded-full border border-white/10 transition-all" id="user-menu-btn" onclick="toggleUserMenu()">
                     <img alt="User" class="w-7 h-7 rounded-full object-cover border border-indigo-400/30" src="https://modao.cc/agent-py/media/generated_images/2026-06-26/a8854783ac184603b89311d2a4851970.jpg"/>
@@ -292,10 +317,21 @@
         return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
     }
 
-    // ========== 用户菜单 ==========
+    // ========== 用户菜单 / 通用弹层 ==========
+    // 通用弹层切换：打开一个、关闭其它（消息/设置/用户菜单互斥）
+    var POPOVER_IDS = ['msg-popover', 'settings-popover', 'user-menu'];
+    function togglePopover(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var willOpen = el.classList.contains('hidden');
+        POPOVER_IDS.forEach(function(pid) {
+            var p = document.getElementById(pid);
+            if (p) p.classList.add('hidden');
+        });
+        if (willOpen) el.classList.remove('hidden');
+    }
     function toggleUserMenu() {
-        var menu = document.getElementById('user-menu');
-        menu.classList.toggle('hidden');
+        togglePopover('user-menu');
     }
     window.addEventListener('click', function(e) {
         var btn = document.getElementById('user-menu-btn');
@@ -303,6 +339,13 @@
         if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
             menu.classList.add('hidden');
         }
+        // 设置 / 消息 弹层点击外部关闭
+        ['settings-popover', 'msg-popover'].forEach(function(pid) {
+            var p = document.getElementById(pid);
+            if (p && !p.contains(e.target) && !e.target.closest('[onclick*="togglePopover"]')) {
+                p.classList.add('hidden');
+            }
+        });
     });
 
     // ========== 课程弹窗 ==========
@@ -394,7 +437,7 @@
         var q = inp.value.trim();
         if (!q) return;
         document.getElementById('search-modal-title').innerText = '搜索：' + q;
-        document.getElementById('search-modal-content').innerHTML = '<div class="text-center py-12"><iconify-icon icon="lucide:loader" class="animate-spin text-3xl text-indigo-400"></iconify-icon><p class="text-slate-500 text-sm mt-3">AI 正在查询知识库...</p></div>';
+        document.getElementById('search-modal-content').innerHTML = '<div class="text-center py-12"><iconify-icon icon="lucide:loader" class="animate-spin text-3xl text-indigo-400"></iconify-icon><p class="text-slate-500 text-sm mt-3">讯飞知识库agent正在检索大数据技术知识库</p></div>';
         document.getElementById('search-modal').classList.remove('hidden');
         try {
             var data = await API.aiKnowledge([{role:'user',content:q}]);
