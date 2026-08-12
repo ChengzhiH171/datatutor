@@ -19,7 +19,7 @@
 
 - 后端: Python 3.13 / Flask / Flask-SocketIO / SQLAlchemy / Celery
 - 数据库: MySQL 8.0 / Redis 7
-- AI 引擎: 讯飞星火认知大模型 V4.0 → 星辰 MaaS 工作流 Agent API
+- AI 引擎: 4个讯飞星辰工作流 Agent API
 - 容器化: Docker / Docker Compose
 - 前端: HTML5 / Tailwind CSS / Iconify / Socket.IO
 
