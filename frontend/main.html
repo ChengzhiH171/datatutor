@@ -618,10 +618,6 @@ async function switchSubtask(idx) {
     if (km) km.innerHTML = '';  // 清空旧消息
     buildSidebar();
     updateProgress();
-    // 切换子任务时重置耗时起点
-    sessionStartTime = Date.now();
-    localStorage.setItem('dt_session_start', sessionStartTime);
-
     var st = subtasks[idx];
     if (!st) return;
     var container = document.getElementById('chat-messages');
