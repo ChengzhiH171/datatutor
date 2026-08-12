@@ -1,25 +1,96 @@
 """
 DataTutor 验证码模块
 自绘4位数字验证码，Pillow + Redis 存储
+带 Redis 不可用时的内存降级方案（开发/单机测试用）
 """
 import io
 import base64
 import random
+import string
 import uuid
+import threading
+import time
 import redis_client
 from PIL import Image, ImageDraw
+
+
+# 内存降级存储（Redis 不可用时使用）{captcha_id: (code, expire_at)}
+_fallback_store = {}
+_fallback_lock = threading.Lock()
+FALLBACK_TTL = 300  # 5 分钟
+
+
+def _fallback_set(captcha_id, code, ttl=FALLBACK_TTL):
+    with _fallback_lock:
+        _fallback_store[captcha_id] = (code, time.time() + ttl)
+        # 顺手清理过期项
+        now = time.time()
+        for k in list(_fallback_store.keys()):
+            if _fallback_store[k][1] < now:
+                del _fallback_store[k]
+
+
+def _fallback_get(captcha_id):
+    with _fallback_lock:
+        item = _fallback_store.get(captcha_id)
+        if not item:
+            return None
+        code, exp = item
+        if exp < time.time():
+            del _fallback_store[captcha_id]
+            return None
+        return code
+
+
+def _fallback_delete(captcha_id):
+    with _fallback_lock:
+        _fallback_store.pop(captcha_id, None)
+
+
+def _store_captcha(captcha_id, code):
+    """优先存 Redis，失败则降级到内存"""
+    r = redis_client.get_redis()
+    if r is not None:
+        try:
+            r.setex(f'captcha:{captcha_id}', FALLBACK_TTL, code)
+            return  # 成功
+        except Exception:
+            pass  # 降级
+    _fallback_set(captcha_id, code)
+
+
+def _fetch_captcha(captcha_id):
+    """优先从 Redis 取，失败则从内存取"""
+    r = redis_client.get_redis()
+    if r is not None:
+        try:
+            stored = r.get(f'captcha:{captcha_id}')
+            if stored is not None:
+                return stored.decode('utf-8') if isinstance(stored, bytes) else stored
+        except Exception:
+            pass
+    return _fallback_get(captcha_id)
+
+
+def _delete_captcha(captcha_id):
+    r = redis_client.get_redis()
+    if r is not None:
+        try:
+            r.delete(f'captcha:{captcha_id}')
+            return
+        except Exception:
+            pass
+    _fallback_delete(captcha_id)
 
 
 def generate_captcha():
     """生成验证码图片，返回 (captcha_id, base64_image)"""
     # 4位随机数字
-    code = ''.join(random.choices('0123456789', k=4))
+    code = ''.join(random.choices(string.digits, k=4))
     captcha_id = str(uuid.uuid4())
 
-    # 存入 Redis，5分钟过期
-    r = redis_client.get_redis()
-    if r:
-        r.setex(f'captcha:{captcha_id}', 300, code)
+    # 存验证码（Redis 优先，失败降级内存）
+    _store_captcha(captcha_id, code)
 
     # 绘制图片
     width, height = 120, 44
@@ -71,18 +142,13 @@ def generate_captcha():
 
 
 def verify_captcha(captcha_id, captcha_code):
-    """校验验证码，成功返回 True 并删除 Redis key，失败返回 False"""
+    """校验验证码，成功返回 True 并删除存储项，失败返回 False"""
     if not captcha_id or not captcha_code:
         return False
-    r = redis_client.get_redis()
-    if not r:
+    stored_str = _fetch_captcha(captcha_id)
+    if stored_str is None:
         return False
-    key = f'captcha:{captcha_id}'
-    stored = r.get(key)
-    if stored is None:
-        return False
-    stored_str = stored.decode('utf-8') if isinstance(stored, bytes) else stored
-    if stored_str.lower() == captcha_code.strip().lower():
-        r.delete(key)  # 一次性验证码
+    if str(stored_str).strip().lower() == str(captcha_code).strip().lower():
+        _delete_captcha(captcha_id)  # 一次性验证码
         return True
     return False

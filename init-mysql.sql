@@ -1,0 +1,1 @@
+-- DataTutor MySQL init (tables created by app.py db.create_all())
