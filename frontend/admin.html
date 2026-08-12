@@ -83,7 +83,8 @@ async function loadPending(){
   try{var r=await apiFetch('/courses/admin/pending');var cs=Array.isArray(r)?r:(r.courses||[]);
     var el=document.getElementById('pending-list');
     if(!cs.length){el.innerHTML='<p class="text-xs text-slate-400">暂无待审核</p>';return}
-    var h='';cs.forEach(function(c){h+='<div class="p-2 rounded-lg cursor-pointer hover:bg-red-50 text-sm" onclick="showDetail('+c.id+')"><div class="font-medium truncate">'+c.name+'</div><div class="text-xs text-slate-400">教师'+c.teacher_id+'</div></div>'});
+    // 展示申请教师姓名 + 工号
+    var h='';cs.forEach(function(c){h+='<div class="p-2 rounded-lg cursor-pointer hover:bg-red-50 text-sm" onclick="showDetail('+c.id+')"><div class="font-medium truncate">'+c.name+'</div><div class="text-xs text-slate-400">'+(c.teacher_name||'')+(c.teacher_no?' · 工号'+c.teacher_no:'')+'</div></div>'});
     el.innerHTML=h;
   }catch(e){}
 }
@@ -92,15 +93,16 @@ async function showDetail(cid){
   if(!_dc[cid]){var r=await apiFetch('/courses/admin/pending');(Array.isArray(r)?r:(r.courses||[])).forEach(function(c){_dc[c.id]=c});}
   var c=_dc[cid];if(!c)return;
   document.getElementById('detail-name').innerText=c.name;
-  document.getElementById('detail-info').innerText=(c.course_code||'')+' | '+c.subtask_count+'子任务';
+  document.getElementById('detail-info').innerText=(c.course_code||'')+' | '+(c.teacher_name||'')+(c.teacher_no?'（工号'+c.teacher_no+'）':'')+' | '+c.subtask_count+'子任务';
   document.getElementById('detail-desc').innerText=c.description||'';
   document.getElementById('modal-detail').classList.remove('hidden');window._ac=cid;
 }
 async function audit(a){
   var cid=window._ac;if(!cid)return;
   await apiFetch((a?'/courses/admin/approve/':'/courses/admin/reject/')+cid,{method:'POST'});
-  alert(a?'已通过':'已驳回');document.getElementById('modal-detail').classList.add('hidden');
-  _dc={};loadPending();
+  toast(a?'已通过审核，课程已全站公开':'已驳回公开申请','success');
+  document.getElementById('modal-detail').classList.add('hidden');
+  _dc={};loadPending();loadCourses();
 }
 
 // === COURSES ===
@@ -110,7 +112,7 @@ async function loadCourses(){
     var cols=['from-indigo-500 to-blue-600','from-violet-500 to-purple-600','from-emerald-500 to-teal-600','from-amber-500 to-orange-600','from-rose-500 to-pink-600','from-cyan-500 to-sky-600'];
     var h='';cs.forEach(function(c,i){
       var col=cols[i%cols.length];
-      h+='<div class="card p-6 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300" data-cid="'+c.id+'" data-cname="'+c.name.replace(/"/g,'quot;')+'"><div class="w-12 h-12 bg-gradient-to-br '+col+' rounded-xl flex items-center justify-center mb-3"><iconify-icon icon="lucide:book-open" class="text-white text-xl"></iconify-icon></div><div class="font-semibold text-sm text-slate-800 mb-1">'+c.name+'</div><div class="text-xs text-slate-400">'+(c.course_code||'')+'</div><div class="flex gap-2 mt-3"><span class="px-2 py-0.5 rounded-full text-xs '+(c.subtask_count?'bg-indigo-50 text-indigo-600':'bg-slate-50')+'">'+c.subtask_count+' 子任务</span><span class="px-2 py-0.5 rounded-full text-xs '+(c.is_public?'bg-emerald-50 text-emerald-600':'bg-slate-50')+'">'+(c.is_public?'公开':'私有')+'</span><button class="ml-auto px-2 py-0.5 rounded-full text-xs bg-red-50 text-red-600 hover:bg-red-100" onclick="event.stopPropagation();deleteCourse('+c.id+',this)"><iconify-icon icon="lucide:trash-2" class="align-middle"></iconify-icon> 删除</button></div></div>';
+      h+='<div class="card p-6 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300" data-cid="'+c.id+'" data-cname="'+c.name.replace(/"/g,'quot;')+'"><div class="w-12 h-12 bg-gradient-to-br '+col+' rounded-xl flex items-center justify-center mb-3"><iconify-icon icon="lucide:book-open" class="text-white text-xl"></iconify-icon></div><div class="font-semibold text-sm text-slate-800 mb-1">'+c.name+'</div><div class="text-xs text-slate-400">'+(c.course_code||'')+'</div><div class="flex gap-2 mt-3"><span class="px-2 py-0.5 rounded-full text-xs '+(c.subtask_count?'bg-indigo-50 text-indigo-600':'bg-slate-50')+'">'+c.subtask_count+' 子任务</span><span class="px-2 py-0.5 rounded-full text-xs '+(c.is_public===1?'bg-emerald-50 text-emerald-600':(c.is_public===2?'bg-amber-50 text-amber-600':'bg-slate-50'))+'">'+(c.is_public===1?'公开':(c.is_public===2?'待审核':'私有'))+'</span><button class="ml-auto px-2 py-0.5 rounded-full text-xs bg-red-50 text-red-600 hover:bg-red-100" onclick="event.stopPropagation();deleteCourse('+c.id+',this)"><iconify-icon icon="lucide:trash-2" class="align-middle"></iconify-icon> 删除</button></div></div>';
     });
     document.getElementById('courses-grid').innerHTML=h||'<p class="text-slate-400 text-center py-12 col-span-3">暂无课程</p>';
     // Attach click handlers
