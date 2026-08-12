@@ -24,15 +24,8 @@ class DorisClient:
         return self._local.conn
 
     def execute(self, sql, params=None):
-        """执行写入（INSERT）"""
-        try:
-            conn = self._get_conn()
-            cur = conn.cursor()
-            cur.execute(sql, params)
-            conn.commit()
-            cur.close()
-        except Exception:
-            pass  # Doris 写入失败不影响主流程
+        """执行写入（INSERT）— Doris 已弃用，直接返回，避免连接超时阻塞终端"""
+        return
 
     def query(self, sql, params=None):
         """执行查询（SELECT）"""
