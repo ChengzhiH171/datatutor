@@ -145,8 +145,8 @@
         <div class="mb-8">
             <div class="flex justify-between items-center mb-6">
                 <div class="flex gap-6" id="role-tabs">
-                    <span class="role-tab active text-lg" data-role="student" onclick="switchRole('student')">学生登录</span>
-                    <span class="role-tab text-lg" data-role="teacher" onclick="switchRole('teacher')">教师登录</span>
+                    <span class="role-tab active text-lg" data-role="student" onclick="switchRole('student')" id="tab-student">学生登录</span>
+                    <span class="role-tab text-lg" data-role="teacher" onclick="switchRole('teacher')" id="tab-teacher">教师登录</span>
                 </div>
                 <a class="text-sm text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer" id="mode-toggle" onclick="toggleMode()">注册账号</a>
             </div>
@@ -196,7 +196,7 @@
                 <label class="text-sm text-slate-600" for="remember">记住登录状态</label>
             </div>
 
-            <div class="space-y-3 hidden" id="register-fields">
+            <div class="space-y-2 hidden" id="register-fields">
                 <!-- 返回登录入口（注册模式专属，明显可见） -->
                 <div class="flex items-center justify-between">
                     <span class="text-xs text-slate-500">填写以下信息完成注册</span>
@@ -339,6 +339,8 @@
         const teacherFields = document.getElementById('teacher-fields');
         const regFields = document.getElementById('register-fields');
         const rememberRow = document.querySelector('#remember').closest('.flex');
+        const headerBox = loginTitle.closest('.mb-8');
+        const formEl = document.querySelector('form.space-y-4');
 
         if (currentMode === 'register') {
             loginTitle.innerText = currentRole === 'teacher' ? '教师注册' : '创建账号';
@@ -346,8 +348,13 @@
             loginText.innerText = '注册并登录';
             modeToggle.innerText = '已有账号？登录';
             labelUser.innerText = currentRole === 'teacher' ? '教师姓名' : '用户名';
+            document.getElementById('tab-student').innerText = '学生注册';
+            document.getElementById('tab-teacher').innerText = '教师注册';
             regFields.classList.remove('hidden');
             rememberRow.classList.add('hidden');
+            // 注册模式压缩间距，防止界面过高
+            if (headerBox) { headerBox.classList.remove('mb-8'); headerBox.classList.add('mb-4'); }
+            if (formEl) { formEl.classList.remove('space-y-4'); formEl.classList.add('space-y-2.5'); }
             if (currentRole === 'teacher') {
                 teacherFields.classList.remove('hidden');
             } else {
@@ -361,8 +368,13 @@
             loginText.innerText = '进入实训空间';
             modeToggle.innerText = '注册账号';
             labelUser.innerText = currentRole === 'teacher' ? '教师姓名' : '用户名 / 邮箱';
+            document.getElementById('tab-student').innerText = '学生登录';
+            document.getElementById('tab-teacher').innerText = '教师登录';
             regFields.classList.add('hidden');
             rememberRow.classList.remove('hidden');
+            // 登录模式恢复原始间距
+            if (headerBox) { headerBox.classList.remove('mb-4'); headerBox.classList.add('mb-8'); }
+            if (formEl) { formEl.classList.remove('space-y-2.5'); formEl.classList.add('space-y-4'); }
             teacherFields.classList.add('hidden');
         }
     }
