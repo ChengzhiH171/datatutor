@@ -1249,7 +1249,7 @@ function startReportPolling() {
     }, 2000);
 }
 // SocketIO 进度监听
-if (typeof termSocket !== 'undefined') {
+if (termSocket && typeof termSocket.on === 'function') {
     termSocket.on('report_progress', function(p) {
         var stage = p.stage || 'started';
         if (stage === 'completed' && p.report) {
