@@ -39,6 +39,8 @@
     .course-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.3); }
     .progress-bar-animated { background: linear-gradient(90deg, #6366f1, #8b5cf6, #6366f1); background-size: 200% 100%; animation: progress-shift 2s ease infinite; }
     @keyframes progress-shift { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+    .toggle-switch { transition: background-color .2s; }
+    .toggle-knob { transition: transform .2s; }
 </style>
 </head>
 <body class="min-h-screen text-white dot-bg">
@@ -74,35 +76,44 @@
                     </div>
                 </div>
             </div>
-            <!-- 消息中心（铃铛） -->
-            <div class="relative">
-                <button class="relative p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="togglePopover('msg-popover')">
-                    <iconify-icon class="text-xl" icon="lucide:bell"></iconify-icon>
-                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0F0B1F]"></span>
-                </button>
-                <div class="hidden absolute top-full right-0 mt-2 w-64 bg-[#1A1535] rounded-xl shadow-xl border border-white/10 py-2 z-50" id="msg-popover">
-                    <div class="px-4 py-2 border-b border-white/5 flex items-center gap-2">
-                        <iconify-icon class="text-indigo-400" icon="lucide:bell"></iconify-icon>
-                        <span class="text-sm font-semibold text-white">消息中心</span>
-                    </div>
-                    <div class="px-4 py-6 text-center">
-                        <iconify-icon class="text-slate-600 text-2xl mx-auto mb-2" icon="lucide:bell-off"></iconify-icon>
-                        <p class="text-slate-500 text-xs">暂无新消息</p>
-                    </div>
-                </div>
-            </div>
             <!-- 设置 -->
             <div class="relative">
-                <button class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="togglePopover('settings-popover')">
+                <button id="settings-popover-btn" class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="event.stopPropagation();toggleDropdown('settings-popover')">
                     <iconify-icon class="text-xl" icon="lucide:settings"></iconify-icon>
                 </button>
-                <div class="hidden absolute top-full right-0 mt-2 w-40 bg-[#1A1535] rounded-xl shadow-xl border border-white/10 py-2 z-50" id="settings-popover">
-                    <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5" href="profile.html">
-                        <iconify-icon icon="lucide:user-circle"></iconify-icon> 账号
+                <div class="hidden absolute top-full right-0 mt-2 w-56 bg-[#1A1535] rounded-xl shadow-xl border border-white/10 py-2 z-50" id="settings-popover">
+                    <div class="px-4 py-1.5 border-b border-white/5"><span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">偏好设置</span></div>
+                    <!-- 字体大小 -->
+                    <div class="px-4 py-2 flex items-center justify-between">
+                        <span class="text-sm text-slate-300 flex items-center gap-2"><iconify-icon icon="lucide:type"></iconify-icon> 字体大小</span>
+                        <div class="flex items-center gap-1">
+                            <button onclick="adjustFontSize(-1)" class="w-7 h-7 rounded bg-white/5 hover:bg-white/10 text-slate-300 text-[11px] transition-colors">A-</button>
+                            <button onclick="adjustFontSize(0)" class="w-7 h-7 rounded bg-white/5 hover:bg-white/10 text-slate-300 text-[9px] transition-colors">默认</button>
+                            <button onclick="adjustFontSize(1)" class="w-7 h-7 rounded bg-white/5 hover:bg-white/10 text-slate-300 text-[13px] transition-colors">A+</button>
+                        </div>
+                    </div>
+                    <!-- 通知开关 -->
+                    <div class="px-4 py-2 flex items-center justify-between cursor-pointer" onclick="toggleNotifications()">
+                        <span class="text-sm text-slate-300 flex items-center gap-2"><iconify-icon icon="lucide:bell-ring"></iconify-icon> 通知提醒</span>
+                        <span class="toggle-switch relative w-9 h-5 bg-white/10 rounded-full" id="notify-switch-bg">
+                            <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full" id="notify-switch-knob"></span>
+                        </span>
+                    </div>
+                    <div class="h-[1px] bg-white/10 my-1"></div>
+                    <!-- 帮助中心 -->
+                    <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer" onclick="showHelpModal()">
+                        <iconify-icon icon="lucide:help-circle"></iconify-icon> 帮助中心
+                    </a>
+                    <!-- 关于 -->
+                    <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer" onclick="showAboutModal()">
+                        <iconify-icon icon="lucide:info"></iconify-icon> 关于 DataTutor
                     </a>
                     <div class="h-[1px] bg-white/10 my-1"></div>
+                    <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5" href="profile.html">
+                        <iconify-icon icon="lucide:user-circle"></iconify-icon> 账号信息
+                    </a>
                     <a class="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 cursor-pointer" onclick="API.logout()">
-                        <iconify-icon icon="lucide:log-out"></iconify-icon> 退出
+                        <iconify-icon icon="lucide:log-out"></iconify-icon> 退出登录
                     </a>
                 </div>
             </div>
@@ -319,8 +330,8 @@
 
     // ========== 用户菜单 / 通用弹层 ==========
     // 通用弹层切换：打开一个、关闭其它（消息/设置/用户菜单互斥）
-    var POPOVER_IDS = ['msg-popover', 'settings-popover', 'user-menu'];
-    function togglePopover(id) {
+    var POPOVER_IDS = ['settings-popover', 'user-menu'];
+    function toggleDropdown(id) {
         var el = document.getElementById(id);
         if (!el) return;
         var willOpen = el.classList.contains('hidden');
@@ -331,20 +342,21 @@
         if (willOpen) el.classList.remove('hidden');
     }
     function toggleUserMenu() {
-        togglePopover('user-menu');
+        toggleDropdown('user-menu');
     }
     window.addEventListener('click', function(e) {
-        var btn = document.getElementById('user-menu-btn');
-        var menu = document.getElementById('user-menu');
-        if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
-            menu.classList.add('hidden');
-        }
-        // 设置 / 消息 弹层点击外部关闭
-        ['settings-popover', 'msg-popover'].forEach(function(pid) {
-            var p = document.getElementById(pid);
-            if (p && !p.contains(e.target) && !e.target.closest('[onclick*="togglePopover"]')) {
-                p.classList.add('hidden');
-            }
+        // 用 id + contains 判定，不依赖 onclick 属性查找（避免 web component 干扰）
+        var configs = [
+            {popover: 'settings-popover',  btn: 'settings-popover-btn'},
+            {popover: 'user-menu',         btn: 'user-menu-btn'}
+        ];
+        configs.forEach(function(cfg) {
+            var popover = document.getElementById(cfg.popover);
+            var btn = document.getElementById(cfg.btn);
+            if (!popover || popover.classList.contains('hidden')) return;
+            if (btn && btn.contains(e.target)) return;       // 点自己按钮由 onclick 负责切换
+            if (popover.contains(e.target)) return;          // 点 popover 内部不关
+            popover.classList.add('hidden');
         });
     });
 
@@ -517,6 +529,56 @@
 
     // ========== 页面初始化 ==========
     loadCourses();
+    initSettings();
+
+    // ========== 设置：字体大小 ==========
+    function adjustFontSize(delta) {
+        var sizes = [14, 15, 16, 17, 18, 19, 20];
+        var cur = parseInt(localStorage.getItem('dt_font_size') || '16');
+        var idx = sizes.indexOf(cur);
+        if (idx < 0) idx = 2;
+        if (delta === 0) idx = 2;
+        else idx = Math.max(0, Math.min(sizes.length - 1, idx + delta));
+        var ns = sizes[idx];
+        localStorage.setItem('dt_font_size', ns);
+        document.documentElement.style.fontSize = ns + 'px';
+    }
+
+    // ========== 设置：通知开关 ==========
+    function toggleNotifications() {
+        var enabled = localStorage.getItem('dt_notify_enabled') !== '0';
+        localStorage.setItem('dt_notify_enabled', enabled ? '0' : '1');
+        updateNotifySwitch();
+    }
+    function updateNotifySwitch() {
+        var enabled = localStorage.getItem('dt_notify_enabled') !== '0';
+        var bg = document.getElementById('notify-switch-bg');
+        var knob = document.getElementById('notify-switch-knob');
+        if (bg) {
+            if (enabled) { bg.style.background = 'rgba(99,102,241,.6)'; }
+            else { bg.style.background = 'rgba(255,255,255,.1)'; }
+        }
+        if (knob) { knob.style.transform = enabled ? 'translateX(16px)' : 'translateX(0)'; }
+    }
+
+    // ========== 设置：帮助 / 关于 弹窗 ==========
+    function showHelpModal() {
+        toggleDropdown('settings-popover');
+        document.getElementById('help-modal').classList.remove('hidden');
+    }
+    function closeHelpModal() { document.getElementById('help-modal').classList.add('hidden'); }
+    function showAboutModal() {
+        toggleDropdown('settings-popover');
+        document.getElementById('about-modal').classList.remove('hidden');
+    }
+    function closeAboutModal() { document.getElementById('about-modal').classList.add('hidden'); }
+
+    // ========== 设置初始化 ==========
+    function initSettings() {
+        var fs = parseInt(localStorage.getItem('dt_font_size') || '16');
+        if (fs !== 16) document.documentElement.style.fontSize = fs + 'px';
+        updateNotifySwitch();
+    }
 </script>
 
 <!-- 课程选择弹窗 -->
@@ -626,6 +688,71 @@
         <input class="w-full mb-3 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-indigo-400" placeholder="班级号" id="class-code-input"/>
         <input class="w-full mb-4 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-indigo-400" placeholder="老师姓名" id="teacher-name-input"/>
         <button class="w-full py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700" id="class-join-confirm" onclick="joinClassSubmit()">确认加入</button>
+    </div>
+</div>
+<!-- === 帮助中心弹窗 === -->
+<div class="hidden fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" id="help-modal" onclick="closeHelpModal()">
+    <div class="bg-[#1A1535] rounded-2xl border border-white/10 w-full max-w-lg shadow-2xl" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between p-5 border-b border-white/10">
+            <div class="flex items-center gap-2"><iconify-icon class="text-indigo-400" icon="lucide:help-circle"></iconify-icon><span class="text-sm font-semibold">帮助中心</span></div>
+            <button class="text-slate-500 hover:text-white" onclick="closeHelpModal()"><iconify-icon class="text-xl" icon="lucide:x"></iconify-icon></button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-1"><iconify-icon class="text-indigo-400" icon="lucide:compass"></iconify-icon><span class="text-sm font-semibold text-white">如何开始学习？</span></div>
+                <p class="text-xs text-slate-400 leading-relaxed">点击课程卡片，选择"加入班级"或"个人学习"模式即可进入实训。加入班级需输入班级号和老师姓名。</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-1"><iconify-icon class="text-emerald-400" icon="lucide:search"></iconify-icon><span class="text-sm font-semibold text-white">如何搜索知识点？</span></div>
+                <p class="text-xs text-slate-400 leading-relaxed">在顶部搜索框输入关键词并回车，讯飞知识库 agent 将为你检索大数据技术知识库中的相关内容。</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-1"><iconify-icon class="text-amber-400" icon="lucide:file-bar-chart"></iconify-icon><span class="text-sm font-semibold text-white">如何查看实训报告？</span></div>
+                <p class="text-xs text-slate-400 leading-relaxed">点击右上角头像，选择"我的报告"即可查看和下载已生成的实训报告。</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-1"><iconify-icon class="text-rose-400" icon="lucide:settings"></iconify-icon><span class="text-sm font-semibold text-white">如何调整字体大小？</span></div>
+                <p class="text-xs text-slate-400 leading-relaxed">点击右上角设置图标，使用 A-/A+ 按钮调节字体大小，设置会自动保存。</p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- === 关于弹窗 === -->
+<div class="hidden fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" id="about-modal" onclick="closeAboutModal()">
+    <div class="bg-[#1A1535] rounded-2xl border border-white/10 w-full max-w-md p-6 shadow-2xl" onclick="event.stopPropagation()">
+        <button class="absolute top-4 right-4 text-slate-500 hover:text-white" onclick="closeAboutModal()"><iconify-icon class="text-xl" icon="lucide:x"></iconify-icon></button>
+        <div class="text-center mb-5">
+            <div class="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-400/20">
+                <img src="/static/img/logo-datatutor.png" alt="DataTutor" class="h-10 w-10 rounded-lg">
+            </div>
+            <h2 class="text-lg font-bold text-white mb-1">DataTutor</h2>
+            <p class="text-xs text-slate-500">大数据技术学科垂类智能教学助手</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4 text-left space-y-3">
+            <div class="flex justify-between text-xs"><span class="text-slate-500">版本</span><span class="text-slate-300 mono">v4.0</span></div>
+            <div class="flex justify-between text-xs"><span class="text-slate-500">基座模型</span><span class="text-slate-300">讯飞星辰Agent ＋ 讯飞星辰Maas</span></div>
+            <!-- 知识库 -->
+            <div class="text-xs">
+                <div class="text-slate-500 mb-1.5">知识库（3 个）</div>
+                <div class="space-y-1 pl-3 border-l border-indigo-400/30">
+                    <div class="text-slate-300">大数据技术知识库</div>
+                    <div class="text-slate-300">实操诊断知识库</div>
+                    <div class="text-slate-300">实训任务模板库</div>
+                </div>
+            </div>
+            <!-- 智能体 -->
+            <div class="text-xs">
+                <div class="text-slate-500 mb-1.5">智能体（4 个）</div>
+                <div class="space-y-1 pl-3 border-l border-violet-400/30">
+                    <div class="text-slate-300">TeacherAgent <span class="text-slate-600">— 实训任务生成</span></div>
+                    <div class="text-slate-300">KnowledgeAgent <span class="text-slate-600">— 万能知识库</span></div>
+                    <div class="text-slate-300">TrainingAgent <span class="text-slate-600">— 实训副驾</span></div>
+                    <div class="text-slate-300">ReportAgent <span class="text-slate-600">— 实训报告生成</span></div>
+                </div>
+            </div>
+            <div class="flex justify-between text-xs"><span class="text-slate-500">开源地址</span><a href="https://github.com/Rosdwn/datatutor" target="_blank" class="text-indigo-400 hover:text-indigo-300">github.com/Rosdwn/datatutor</a></div>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-4 text-center">感谢讯飞提供的技术支持</p>
     </div>
 </div>
 </body>
