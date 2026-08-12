@@ -80,7 +80,7 @@
             </div>
             <!-- 消息中心（铃铛） -->
             <div class="relative">
-                <button id="msg-popover-btn" class="relative p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="event.stopPropagation();togglePopover('msg-popover');renderMessages()">
+                <button id="msg-popover-btn" class="relative p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="event.stopPropagation();toggleDropdown('msg-popover');renderMessages()">
                     <iconify-icon class="text-xl" icon="lucide:bell"></iconify-icon>
                     <span class="hidden absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0F0B1F]" id="msg-badge"></span>
                 </button>
@@ -100,7 +100,7 @@
             </div>
             <!-- 设置 -->
             <div class="relative">
-                <button id="settings-popover-btn" class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="event.stopPropagation();togglePopover('settings-popover')">
+                <button id="settings-popover-btn" class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="event.stopPropagation();toggleDropdown('settings-popover')">
                     <iconify-icon class="text-xl" icon="lucide:settings"></iconify-icon>
                 </button>
                 <div class="hidden absolute top-full right-0 mt-2 w-56 bg-[#1A1535] rounded-xl shadow-xl border border-white/10 py-2 z-50" id="settings-popover">
@@ -353,7 +353,7 @@
     // ========== 用户菜单 / 通用弹层 ==========
     // 通用弹层切换：打开一个、关闭其它（消息/设置/用户菜单互斥）
     var POPOVER_IDS = ['msg-popover', 'settings-popover', 'user-menu'];
-    function togglePopover(id) {
+    function toggleDropdown(id) {
         var el = document.getElementById(id);
         if (!el) return;
         var willOpen = el.classList.contains('hidden');
@@ -364,7 +364,7 @@
         if (willOpen) el.classList.remove('hidden');
     }
     function toggleUserMenu() {
-        togglePopover('user-menu');
+        toggleDropdown('user-menu');
     }
     window.addEventListener('click', function(e) {
         // 用 id + contains 判定，不依赖 onclick 属性查找（避免 web component 干扰）
@@ -588,12 +588,12 @@
 
     // ========== 设置：帮助 / 关于 弹窗 ==========
     function showHelpModal() {
-        togglePopover('settings-popover');
+        toggleDropdown('settings-popover');
         document.getElementById('help-modal').classList.remove('hidden');
     }
     function closeHelpModal() { document.getElementById('help-modal').classList.add('hidden'); }
     function showAboutModal() {
-        togglePopover('settings-popover');
+        toggleDropdown('settings-popover');
         document.getElementById('about-modal').classList.remove('hidden');
     }
     function closeAboutModal() { document.getElementById('about-modal').classList.add('hidden'); }
