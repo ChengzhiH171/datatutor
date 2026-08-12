@@ -41,8 +41,6 @@
     @keyframes progress-shift { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
     .toggle-switch { transition: background-color .2s; }
     .toggle-knob { transition: transform .2s; }
-    .msg-item { border-left: 2px solid transparent; }
-    .msg-item.unread { border-left-color: #6366f1; background: rgba(99,102,241,.05); }
 </style>
 </head>
 <body class="min-h-screen text-white dot-bg">
@@ -75,26 +73,6 @@
                         <a href="https://flume.apache.org/download.html" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Flume</a>
                         <a href="https://storm.apache.org/downloads.html" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Storm</a>
                         <a href="https://sqoop.apache.org/" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-white/5">Sqoop</a>
-                    </div>
-                </div>
-            </div>
-            <!-- 消息中心（铃铛） -->
-            <div class="relative">
-                <button id="msg-popover-btn" class="relative p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="event.stopPropagation();toggleDropdown('msg-popover');renderMessages()">
-                    <iconify-icon class="text-xl" icon="lucide:bell"></iconify-icon>
-                    <span class="hidden absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0F0B1F]" id="msg-badge"></span>
-                </button>
-                <div class="hidden absolute top-full right-0 mt-2 w-80 bg-[#1A1535] rounded-xl shadow-xl border border-white/10 z-50 overflow-hidden" id="msg-popover">
-                    <div class="px-4 py-3 border-b border-white/5 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <iconify-icon class="text-indigo-400" icon="lucide:bell"></iconify-icon>
-                            <span class="text-sm font-semibold text-white">消息中心</span>
-                        </div>
-                        <button class="text-xs text-slate-500 hover:text-indigo-400 transition-colors" onclick="markAllRead()">全部已读</button>
-                    </div>
-                    <div class="max-h-80 overflow-y-auto" id="msg-list"></div>
-                    <div class="px-4 py-2 border-t border-white/5 text-center">
-                        <a class="text-xs text-indigo-400 hover:text-indigo-300" href="javascript:void(0)" onclick="alert('完整消息中心页面开发中')">查看全部消息 →</a>
                     </div>
                 </div>
             </div>
@@ -352,7 +330,7 @@
 
     // ========== 用户菜单 / 通用弹层 ==========
     // 通用弹层切换：打开一个、关闭其它（消息/设置/用户菜单互斥）
-    var POPOVER_IDS = ['msg-popover', 'settings-popover', 'user-menu'];
+    var POPOVER_IDS = ['settings-popover', 'user-menu'];
     function toggleDropdown(id) {
         var el = document.getElementById(id);
         if (!el) return;
@@ -369,7 +347,6 @@
     window.addEventListener('click', function(e) {
         // 用 id + contains 判定，不依赖 onclick 属性查找（避免 web component 干扰）
         var configs = [
-            {popover: 'msg-popover',       btn: 'msg-popover-btn'},
             {popover: 'settings-popover',  btn: 'settings-popover-btn'},
             {popover: 'user-menu',         btn: 'user-menu-btn'}
         ];
@@ -553,7 +530,6 @@
     // ========== 页面初始化 ==========
     loadCourses();
     initSettings();
-    renderMessages();
 
     // ========== 设置：字体大小 ==========
     function adjustFontSize(delta) {
@@ -573,7 +549,6 @@
         var enabled = localStorage.getItem('dt_notify_enabled') !== '0';
         localStorage.setItem('dt_notify_enabled', enabled ? '0' : '1');
         updateNotifySwitch();
-        renderMessages();
     }
     function updateNotifySwitch() {
         var enabled = localStorage.getItem('dt_notify_enabled') !== '0';
@@ -597,71 +572,6 @@
         document.getElementById('about-modal').classList.remove('hidden');
     }
     function closeAboutModal() { document.getElementById('about-modal').classList.add('hidden'); }
-
-    // ========== 消息中心 ==========
-    function generateMessages() {
-        var user = (typeof API !== 'undefined' && API.getCurrentUser) ? (API.getCurrentUser() || {}) : {};
-        var uid = user.id || 0;
-        var joined = JSON.parse(localStorage.getItem('dt_joined_' + uid) || '{}');
-        var courseCount = Object.keys(joined).length;
-        var today = new Date().toDateString();
-        var lastVisit = localStorage.getItem('dt_last_visit');
-        var isNewDay = lastVisit !== today;
-        localStorage.setItem('dt_last_visit', today);
-
-        var msgs = [];
-        if (isNewDay) {
-            msgs.push({ icon: 'lucide:sparkles', color: 'text-amber-400', title: '每日打卡', text: '欢迎回来！今天也要继续大数据学习之旅', time: '刚刚' });
-        } else {
-            msgs.push({ icon: 'lucide:flame', color: 'text-orange-400', title: '坚持学习', text: '你今天已打开过学习中心，保持这个节奏！', time: '今天' });
-        }
-        if (courseCount > 0) {
-            msgs.push({ icon: 'lucide:book-open', color: 'text-indigo-400', title: '学习进度', text: '你已加入 ' + courseCount + ' 门课程，继续完成实训章节吧', time: '今天' });
-        } else {
-            msgs.push({ icon: 'lucide:compass', color: 'text-emerald-400', title: '探索课程', text: '还没有加入课程，选择感兴趣的实训开始吧', time: '今天' });
-        }
-        msgs.push({ icon: 'lucide:megaphone', color: 'text-rose-400', title: '系统公告', text: 'DataTutor 知识库已升级，支持更多大数据组件检索', time: '本周' });
-        return msgs;
-    }
-    function renderMessages() {
-        var notifyEnabled = localStorage.getItem('dt_notify_enabled') !== '0';
-        var badge = document.getElementById('msg-badge');
-        var list = document.getElementById('msg-list');
-        if (!list) return;
-        if (!notifyEnabled) { if (badge) badge.classList.add('hidden'); list.innerHTML = '<div class="px-4 py-8 text-center"><iconify-icon class="text-slate-600 text-2xl mx-auto mb-2 block" icon="lucide:bell-off"></iconify-icon><p class="text-slate-500 text-xs">通知已关闭</p></div>'; return; }
-        var msgs = generateMessages();
-        var readState = JSON.parse(localStorage.getItem('dt_msg_read') || '[]');
-        var today = new Date().toDateString();
-        var todayKey = 'dt_msg_read_' + today;
-        var todayRead = JSON.parse(localStorage.getItem(todayKey) || '[]');
-        var unread = 0;
-        var html = '';
-        msgs.forEach(function(m, i) {
-            var isRead = todayRead.indexOf(i) >= 0;
-            if (!isRead) unread++;
-            html += '<div class="msg-item ' + (isRead ? '' : 'unread') + ' px-4 py-3 border-b border-white/5 hover:bg-white/5 cursor-pointer" onclick="markMsgRead(' + i + ')">' +
-                '<div class="flex gap-3"><div class="flex-shrink-0 mt-0.5"><iconify-icon class="' + m.color + ' text-lg" icon="' + m.icon + '"></iconify-icon></div>' +
-                '<div class="flex-1 min-w-0"><div class="flex items-center justify-between mb-0.5"><span class="text-xs font-semibold text-white">' + m.title + '</span><span class="text-[10px] text-slate-500">' + m.time + '</span></div>' +
-                '<p class="text-xs text-slate-400 leading-relaxed">' + m.text + '</p></div></div></div>';
-        });
-        list.innerHTML = html;
-        if (badge) { if (unread > 0) badge.classList.remove('hidden'); else badge.classList.add('hidden'); }
-    }
-    function markMsgRead(idx) {
-        var today = new Date().toDateString();
-        var todayKey = 'dt_msg_read_' + today;
-        var todayRead = JSON.parse(localStorage.getItem(todayKey) || '[]');
-        if (todayRead.indexOf(idx) < 0) { todayRead.push(idx); localStorage.setItem(todayKey, JSON.stringify(todayRead)); }
-        renderMessages();
-    }
-    function markAllRead() {
-        var today = new Date().toDateString();
-        var msgs = generateMessages();
-        var todayKey = 'dt_msg_read_' + today;
-        var all = []; for (var i = 0; i < msgs.length; i++) all.push(i);
-        localStorage.setItem(todayKey, JSON.stringify(all));
-        renderMessages();
-    }
 
     // ========== 设置初始化 ==========
     function initSettings() {
@@ -809,19 +719,40 @@
 </div>
 <!-- === 关于弹窗 === -->
 <div class="hidden fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" id="about-modal" onclick="closeAboutModal()">
-    <div class="bg-[#1A1535] rounded-2xl border border-white/10 w-full max-w-sm p-6 shadow-2xl text-center" onclick="event.stopPropagation()">
+    <div class="bg-[#1A1535] rounded-2xl border border-white/10 w-full max-w-md p-6 shadow-2xl" onclick="event.stopPropagation()">
         <button class="absolute top-4 right-4 text-slate-500 hover:text-white" onclick="closeAboutModal()"><iconify-icon class="text-xl" icon="lucide:x"></iconify-icon></button>
-        <div class="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-400/20">
-            <img src="/static/img/logo-datatutor.png" alt="DataTutor" class="h-10 w-10 rounded-lg">
+        <div class="text-center mb-5">
+            <div class="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-400/20">
+                <img src="/static/img/logo-datatutor.png" alt="DataTutor" class="h-10 w-10 rounded-lg">
+            </div>
+            <h2 class="text-lg font-bold text-white mb-1">DataTutor</h2>
+            <p class="text-xs text-slate-500">大数据技术学科垂类智能教学助手</p>
         </div>
-        <h2 class="text-lg font-bold text-white mb-1">DataTutor</h2>
-        <p class="text-xs text-slate-500 mb-4">大数据实训智能副驾</p>
-        <div class="bg-white/5 border border-white/10 rounded-xl p-4 text-left space-y-2">
-            <div class="flex justify-between text-xs"><span class="text-slate-500">版本</span><span class="text-slate-300 mono">v2.0.0</span></div>
-            <div class="flex justify-between text-xs"><span class="text-slate-500">知识库</span><span class="text-slate-300">讯飞知识库 Agent</span></div>
-            <div class="flex justify-between text-xs"><span class="text-slate-500">技术栈</span><span class="text-slate-300">Hadoop · Spark · Flink</span></div>
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4 text-left space-y-3">
+            <div class="flex justify-between text-xs"><span class="text-slate-500">版本</span><span class="text-slate-300 mono">v4.0</span></div>
+            <div class="flex justify-between text-xs"><span class="text-slate-500">基座模型</span><span class="text-slate-300">讯飞星火认知大模型 V4.0</span></div>
+            <!-- 知识库 -->
+            <div class="text-xs">
+                <div class="text-slate-500 mb-1.5">知识库（3 个）</div>
+                <div class="space-y-1 pl-3 border-l border-indigo-400/30">
+                    <div class="text-slate-300">大数据技术库 <span class="text-slate-600">— 官方文档 / 安装指南 / 配置模板 / 命令速查</span></div>
+                    <div class="text-slate-300">大数据知识库 <span class="text-slate-600">— 原理讲解 / 常见错误 / 配置说明</span></div>
+                    <div class="text-slate-300">大数据常见错误库 <span class="text-slate-600">— 错误诊断 / 排查步骤</span></div>
+                </div>
+            </div>
+            <!-- 智能体 -->
+            <div class="text-xs">
+                <div class="text-slate-500 mb-1.5">智能体（4 个）</div>
+                <div class="space-y-1 pl-3 border-l border-violet-400/30">
+                    <div class="text-slate-300">TeacherAgent <span class="text-slate-600">— 实训任务生成</span></div>
+                    <div class="text-slate-300">KnowledgeAgent <span class="text-slate-600">— 万能知识库</span></div>
+                    <div class="text-slate-300">TrainingAgent <span class="text-slate-600">— 实训副驾</span></div>
+                    <div class="text-slate-300">ReportAgent <span class="text-slate-600">— 实训报告生成</span></div>
+                </div>
+            </div>
+            <div class="flex justify-between text-xs"><span class="text-slate-500">技术栈</span><span class="text-slate-300">Hadoop · Hive · HBase · Spark · Kafka · Flume</span></div>
         </div>
-        <p class="text-[10px] text-slate-600 mt-4">大数据实训智能副驾 · 让数据学习更简单</p>
+        <p class="text-[10px] text-slate-600 mt-4 text-center">重庆电子科技职业大学 · 大数据工程技术专业</p>
     </div>
 </div>
 </body>
