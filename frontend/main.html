@@ -70,13 +70,37 @@
 <span class="text-[10px] bg-white border border-slate-200 text-slate-400 px-1 rounded ml-2">⌘K</span>
 </div>
 <!-- 按钮组 -->
-<button class="relative p-2 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors">
-<iconify-icon class="text-xl" icon="lucide:bell"></iconify-icon>
-<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-</button>
-<button class="p-2 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors">
+<div class="relative">
+<button class="p-2 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors" onclick="event.stopPropagation();toggleSettings()">
 <iconify-icon class="text-xl" icon="lucide:settings"></iconify-icon>
 </button>
+<div class="hidden absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50" id="settings-popover">
+    <div class="px-4 py-2 border-b border-slate-50">
+        <span class="text-xs font-semibold text-slate-700">偏好设置</span>
+    </div>
+    <div class="px-4 py-2 flex items-center gap-2">
+        <span class="text-xs text-slate-500 flex-1">字体大小</span>
+        <button onclick="adjustFontSize(-1)" class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px]">A-</button>
+        <button onclick="adjustFontSize(0)" class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 text-[9px]">默认</button>
+        <button onclick="adjustFontSize(1)" class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 text-[13px]">A+</button>
+    </div>
+    <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer" onclick="toggleSettings();document.getElementById('help-modal').classList.remove('hidden')">
+        <iconify-icon icon="lucide:help-circle"></iconify-icon> 帮助中心
+    </a>
+    <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer" onclick="toggleSettings();document.getElementById('about-modal').classList.remove('hidden')">
+        <iconify-icon icon="lucide:info"></iconify-icon> 关于 DataTutor
+    </a>
+    <div class="h-[1px] bg-slate-100 my-1"></div>
+    <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50" href="profile.html">
+        <iconify-icon icon="lucide:user-circle"></iconify-icon> 个人信息
+    </a>
+    <a class="flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 cursor-pointer" onclick="API.logout()">
+        <iconify-icon icon="lucide:log-out"></iconify-icon> 退出登录
+    </a>
+</div>
+</div>
+<!-- 全局点击关闭 -->
+<script>document.addEventListener('click',function(e){var p=document.getElementById('settings-popover');if(p&&!p.classList.contains('hidden')&&!e.target.closest('#settings-popover')&&!e.target.closest('[onclick*=\"toggleSettings\"]')){p.classList.add('hidden')}})</script>
 <!-- 用户中心 -->
 <div class="relative ml-2">
 <button class="flex items-center gap-2 p-1 pl-1 pr-2 hover:bg-slate-50 rounded-full border border-slate-100 transition-all" id="user-menu-btn" onclick="toggleUserMenu()">
@@ -89,7 +113,7 @@
 <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50" href="profile.html">
 <iconify-icon icon="lucide:user-circle"></iconify-icon> 个人信息
                     </a>
-<a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50" href="#">
+<a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer" onclick="showMyReports(); toggleUserMenu();">
 <iconify-icon icon="lucide:file-bar-chart"></iconify-icon> 我的报告
                     </a>
 <div class="h-[1px] bg-slate-100 my-1"></div>
@@ -155,12 +179,25 @@
 </div>
 </aside>
 <!-- 3. 右侧主内容区域 -->
-<main class="flex-1 flex overflow-hidden relative">
-<div class="hidden absolute top-0 left-0 right-0 z-50 bg-emerald-500 text-white text-center py-3 px-4 shadow-lg cursor-pointer hover:bg-emerald-600 transition-colors" id="report-banner" onclick="generateReport()">
-    <iconify-icon icon="lucide:award" class="mr-1 align-middle text-lg"></iconify-icon>
-    <span class="font-bold">所有子任务已完成！</span>
-    <span class="ml-2 underline">立即生成实训报告</span>
+<main class="flex-1 flex flex-col overflow-hidden relative">
+<!-- 数据挂载路径横幅 -->
+<div class="bg-indigo-50 border-b border-indigo-200 px-5 py-2 flex items-center gap-3 flex-none" id="data-banner">
+    <div class="flex items-center gap-1.5 text-indigo-600 flex-none">
+        <iconify-icon icon="lucide:folder-open" class="text-sm"></iconify-icon>
+        <span class="text-xs font-bold">本课数据</span>
+    </div>
+    <div class="flex-1 flex items-center gap-2 min-w-0 overflow-hidden">
+        <span class="text-[11px] text-slate-500 mono truncate" id="data-banner-path">/home/learner/course-data/</span>
+        <span class="text-[11px] text-slate-400 truncate" id="data-banner-files">加载中...</span>
+        <span class="text-[10px] text-slate-400">| 安装包: <span class="mono text-slate-500">/home/learner/packages/</span></span>
+    </div>
+    <button class="flex items-center gap-1 text-[11px] bg-indigo-600 text-white px-2.5 py-1 rounded-md hover:bg-indigo-700 transition-colors flex-none" onclick="copyCpCommand()" title="复制 cp 命令到剪贴板">
+        <iconify-icon icon="lucide:copy" class="text-[11px]" style="pointer-events:none"></iconify-icon>
+        <span>复制 cp 命令</span>
+    </button>
 </div>
+<!-- 内容区 -->
+<div class="flex-1 flex overflow-hidden">
 <!-- 智能体对话区 -->
 <section class="flex-1 flex flex-col bg-white" id="chat-panel">
 <!-- 进度仪表盘（仅对话区上方） -->
@@ -183,9 +220,14 @@
 <div class="w-2 h-2 bg-green-500 rounded-full"></div>
 <span class="text-xs font-semibold text-slate-600 uppercase tracking-wider">DataTutor AI Agent</span>
 </div>
+<div class="flex items-center gap-3">
+<button class="text-slate-400 hover:text-indigo-600 flex items-center gap-1 text-xs transition-colors" onclick="showChatHistory()" title="查看当前子任务的历史对话">
+<iconify-icon icon="lucide:history"></iconify-icon> 历史对话
+</button>
 <button class="text-slate-400 hover:text-slate-600 flex items-center gap-1 text-xs" onclick="clearCurrentChat()" title="清空当前子任务聊天">
 <iconify-icon icon="lucide:trash-2"></iconify-icon> 清空
 </button>
+</div>
 </div>
 <!-- 消息列表 -->
 <div class="flex-1 overflow-y-auto p-6 space-y-6" id="chat-messages">
@@ -286,6 +328,7 @@
 <span id="term-conn-status">已连接</span>
 </div>
 </section>
+</div><!-- /内容区 -->
 <!-- 3.3 知识讲解弹窗 -->
 <div class="slide-in absolute top-0 right-0 w-[400px] h-full bg-white shadow-2xl z-40 flex flex-col border-l border-slate-200" id="knowledge-panel">
 <div class="flex-none p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -334,6 +377,8 @@ var subStatuses = {};       // {subtask_id: 'pending'|'in_progress'|'completed'}
 var taskHistories = {};
 var sessionStartTime = 0;     // 由后端 API 设置
 var sessionTimer = null;    // 计时器句柄
+var courseName = '';        // 课程名称（用于弹窗标题等）
+var courseFiles = [];       // 课程数据文件列表
 
 // 实训时长追踪（从后端获取，localStorage 兜底）
 function initTrainingHours() {
@@ -438,9 +483,11 @@ async function loadCourseFilesForStudent() {
     if (!courseId) { list.innerText = '无'; return; }
     try {
         var data = await API.listCourseFiles(courseId);
-        if (data.files && data.files.length > 0) {
+        courseFiles = (data.files || []);
+        updateDataBanner();
+        if (courseFiles.length > 0) {
             var html = '';
-            data.files.forEach(function(f) {
+            courseFiles.forEach(function(f) {
                 html += '<div class="flex items-center justify-between mb-1 hover:bg-slate-700/30 rounded px-1 py-0.5">' +
                     '<span class="truncate mr-1">📄 ' + f.filename + '</span>' +
                     '<button class="text-indigo-400 hover:text-indigo-300 text-[10px] flex-none" onclick="API.downloadCourseFile(\'' + courseId + '\',\'' + f.filename + '\')">下载</button>' +
@@ -452,6 +499,43 @@ async function loadCourseFilesForStudent() {
         }
     } catch(e) {
         list.innerText = '加载失败';
+    }
+}
+
+// === 数据横幅更新 ===
+function updateDataBanner() {
+    var pathEl = document.getElementById('data-banner-path');
+    var filesEl = document.getElementById('data-banner-files');
+    if (!pathEl || !filesEl) return;
+    var path = '/home/learner/course-data/' + (courseId || '') + '/';
+    pathEl.textContent = path;
+    if (courseFiles.length > 0) {
+        var names = courseFiles.map(function(f) { return f.filename; }).join(', ');
+        filesEl.textContent = names;
+    } else {
+        filesEl.textContent = '暂无数据文件';
+    }
+}
+
+// === 复制 cp 命令 ===
+function copyCpCommand() {
+    var path = '/home/learner/course-data/' + (courseId || '') + '/';
+    var cmd = 'cp ' + path + '* .';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(cmd).then(function() {
+            toast('已复制: ' + cmd, 'success');
+        }).catch(function() {
+            toast('复制失败，请手动复制: ' + cmd, 'warn');
+        });
+    } else {
+        // 降级方案
+        var ta = document.createElement('textarea');
+        ta.value = cmd;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); toast('已复制: ' + cmd, 'success'); }
+        catch(e) { toast('复制失败，请手动复制: ' + cmd, 'warn'); }
+        document.body.removeChild(ta);
     }
 }
 
@@ -479,11 +563,16 @@ async function loadMainData() {
         // 获取课程 + 子任务
         var subtaskData = await API.getSubtasks(courseId);
         if (subtaskData.name) {
+            courseName = subtaskData.name;
             var el = document.getElementById('course-name-display');
             if (el) el.innerText = subtaskData.name;
             // 更新仪表盘任务名
             var dn = document.getElementById('dash-task-name');
             if (dn) dn.innerText = subtaskData.name;
+            // 更新报告弹窗标题
+            var rt = document.getElementById('report-modal-title');
+            if (rt) rt.innerText = courseName + ' - 实训报告';
+            updateDataBanner();
         }
         subtasks = subtaskData.subtasks || [];
 
@@ -589,7 +678,6 @@ function updateProgress() {
     tickTrainingHours();
     // 全部完成：显示生成报告按钮
     var reportBtn = document.getElementById('generate-report-btn');
-    var reportBanner = document.getElementById('report-banner');
     if (done > 0 && done === total) {
         if (!reportBtn) {
             var container = document.getElementById('chat-messages');
@@ -600,10 +688,8 @@ function updateProgress() {
                 container.appendChild(div);
             }
         }
-        if (reportBanner) reportBanner.classList.remove('hidden');
     } else {
         if (reportBtn) reportBtn.remove();
-        if (reportBanner) reportBanner.classList.add('hidden');
     }
 }
 
@@ -618,6 +704,7 @@ async function switchSubtask(idx) {
     if (km) km.innerHTML = '';  // 清空旧消息
     buildSidebar();
     updateProgress();
+
     var st = subtasks[idx];
     if (!st) return;
     var container = document.getElementById('chat-messages');
@@ -791,6 +878,16 @@ window.addEventListener('click', function(e) {
 // 完成当前子任务 → 跳下一步
 // ============================================================
 async function completeAndNext(btn) {
+    var st = subtasks[currentSubtaskIdx];
+    if (!st) return;
+
+    // 确认弹窗：警告未完成进入下一阶段会导致评分过低
+    showConfirmModal('若未完成子任务进入下一阶段，将会导致评分过低', function() {
+        _completeAndNextProceed(btn);
+    });
+}
+
+async function _completeAndNextProceed(btn) {
     var st = subtasks[currentSubtaskIdx];
     if (!st) return;
 
@@ -1214,6 +1311,8 @@ var REPORT_STAGE_TEXT = {
 async function generateReport() {
     var modal = document.getElementById('report-modal');
     var content = document.getElementById('report-content');
+    var title = document.getElementById('report-modal-title');
+    if (title) title.innerText = (courseName || '当前课程') + ' - 实训报告';
     modal.classList.remove('hidden');
     renderReportLoading('AI 正在生成实训报告，约需 10-30 秒...');
     try {
@@ -1257,6 +1356,114 @@ if (termSocket && typeof termSocket.on === 'function') {
     });
 }
 function closeReportModal() { document.getElementById('report-modal').classList.add('hidden'); }
+
+// === 历史对话 ===
+function showChatHistory() {
+    var st = subtasks[currentSubtaskIdx];
+    if (!st) { toast('请先选择子任务', 'warn'); return; }
+    var modal = document.getElementById('history-modal');
+    var title = document.getElementById('history-modal-title');
+    var content = document.getElementById('history-content');
+    if (!modal || !content) return;
+    if (title) title.innerText = '历史对话 - ' + st.name;
+    modal.classList.remove('hidden');
+    content.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm"><iconify-icon icon="lucide:loader" class="animate-spin text-2xl mb-2"></iconify-icon><p>加载中...</p></div>';
+
+    // 接口：GET /api/chat/history/<subtask_id>（路径参数，已封装为 API.getChatHistory）
+    API.getChatHistory(st.id).then(function(data) {
+        renderChatHistory(data.messages || data || []);
+    }).catch(function(e) {
+        content.innerHTML = '<div class="text-center py-10 text-red-400 text-sm">加载失败: ' + htmlEscape(e.message || e) + '</div>';
+    });
+}
+
+function renderChatHistory(messages) {
+    var content = document.getElementById('history-content');
+    if (!content) return;
+    if (!messages || messages.length === 0) {
+        content.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">暂无历史对话记录</div>';
+        return;
+    }
+    var html = '';
+    messages.forEach(function(m) {
+        if (m.role === 'system') return;
+        if (m.role === 'user') {
+            html += '<div class="flex gap-3 flex-row-reverse">'
+                + '<div class="w-8 h-8 rounded-lg bg-slate-200 flex-none flex items-center justify-center text-slate-600"><iconify-icon icon="lucide:user"></iconify-icon></div>'
+                + '<div class="flex-1 flex flex-col items-end"><div class="bg-indigo-600 p-3 text-sm text-white rounded-xl max-w-[85%]">' + htmlEscape(m.content) + '</div></div>'
+                + '</div>';
+        } else {
+            html += '<div class="flex gap-3">'
+                + '<div class="w-8 h-8 rounded-lg bg-indigo-600 flex-none flex items-center justify-center text-white"><iconify-icon icon="lucide:bot"></iconify-icon></div>'
+                + '<div class="flex-1"><div class="bg-slate-100 p-3 text-sm text-slate-700 rounded-xl max-w-[85%] whitespace-pre-wrap">' + htmlEscape(m.content) + '</div></div>'
+                + '</div>';
+        }
+    });
+    content.innerHTML = html;
+    content.scrollTop = content.scrollHeight;
+}
+
+function closeHistoryModal() { document.getElementById('history-modal').classList.add('hidden'); }
+
+// === 确认弹窗 ===
+var _confirmCallback = null;
+function showConfirmModal(message, onConfirm) {
+    var modal = document.getElementById('confirm-modal');
+    if (!modal) { if (confirm(message)) onConfirm(); return; }
+    var msgEl = modal.querySelector('p.text-sm');
+    if (msgEl && message) msgEl.innerText = message;
+    _confirmCallback = onConfirm;
+    modal.classList.remove('hidden');
+}
+function closeConfirmModal() {
+    var modal = document.getElementById('confirm-modal');
+    if (modal) modal.classList.add('hidden');
+    _confirmCallback = null;
+}
+document.getElementById('confirm-ok-btn').addEventListener('click', function() {
+    var cb = _confirmCallback;
+    closeConfirmModal();
+    if (typeof cb === 'function') cb();
+});
+
+// === 我的报告（弹窗标题修复 + 列表展示） ===
+async function showMyReports() {
+    var modal = document.getElementById('report-modal');
+    var content = document.getElementById('report-content');
+    var title = document.getElementById('report-modal-title');
+    if (!modal || !content) return;
+    if (title) title.innerText = (courseName || '当前课程') + ' - 我的报告';
+    modal.classList.remove('hidden');
+    content.innerHTML = '<div class="text-center py-12"><iconify-icon icon="lucide:loader" class="animate-spin text-3xl text-indigo-400"></iconify-icon><p class="text-slate-400 mt-3 text-sm">加载报告列表...</p></div>';
+    try {
+        var data = await API.listReports();
+        var reports = (data.reports || data || []);
+        if (!reports.length) {
+            content.innerHTML = '<div class="text-center py-12 text-slate-400 text-sm"><iconify-icon icon="lucide:file-question" class="text-3xl mb-2"></iconify-icon><p>暂无已生成的实训报告</p></div>';
+            return;
+        }
+        var html = '<div class="space-y-3">';
+        reports.forEach(function(r) {
+            var gradeColor = r.grade && r.grade >= 80 ? 'text-green-400' : r.grade && r.grade >= 60 ? 'text-amber-400' : 'text-red-400';
+            var date = r.created_at ? new Date(r.created_at).toLocaleString('zh-CN') : '未知时间';
+            html += '<div class="bg-white/5 rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-colors cursor-pointer" onclick="API.downloadReport(' + r.id + ')">'
+                + '<div class="flex items-center justify-between mb-1">'
+                + '<span class="text-sm font-semibold text-slate-200">' + htmlEscape(r.course_name || courseName || '实训报告') + '</span>'
+                + '<span class="text-sm font-bold ' + gradeColor + '">' + (r.grade != null ? r.grade + '分' : '未评分') + '</span>'
+                + '</div>'
+                + '<div class="flex items-center gap-3 text-xs text-slate-400">'
+                + '<span><iconify-icon icon="lucide:clock" class="mr-1"></iconify-icon>' + date + '</span>'
+                + (r.total_time_hours != null ? '<span><iconify-icon icon="lucide:timer" class="mr-1"></iconify-icon>' + r.total_time_hours.toFixed(1) + 'h</span>' : '')
+                + '</div>'
+                + '<div class="mt-2 text-xs text-indigo-400 flex items-center gap-1"><iconify-icon icon="lucide:download"></iconify-icon> 点击下载报告</div>'
+                + '</div>';
+        });
+        html += '</div>';
+        content.innerHTML = html;
+    } catch(e) {
+        content.innerHTML = '<div class="text-center py-12 text-red-400 text-sm">加载失败: ' + htmlEscape(e.message) + '</div>';
+    }
+}
 </script>
 
 <!-- 报告弹窗 -->
@@ -1265,12 +1472,121 @@ function closeReportModal() { document.getElementById('report-modal').classList.
         <div class="flex items-center justify-between p-5 border-b border-white/10 flex-none">
             <div class="flex items-center gap-2">
                 <iconify-icon class="text-emerald-400" icon="lucide:award"></iconify-icon>
-                <span class="text-sm font-semibold">实训报告</span>
+                <span class="text-sm font-semibold" id="report-modal-title">实训报告</span>
             </div>
             <button class="text-slate-500 hover:text-white" onclick="closeReportModal()"><iconify-icon class="text-xl" icon="lucide:x"></iconify-icon></button>
         </div>
         <div class="flex-1 overflow-y-auto p-6" id="report-content"></div>
+        <div class="flex-none px-6 py-3 border-t border-white/10 bg-white/5">
+            <p class="text-xs text-slate-400 flex items-center gap-1.5">
+                <iconify-icon icon="lucide:info" class="text-indigo-400"></iconify-icon>
+                可点击右上角"我的报告"查看历史报告
+            </p>
+        </div>
     </div>
 </div>
+
+<!-- 历史对话弹窗 -->
+<div class="hidden fixed inset-0 z-[65] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" id="history-modal" onclick="closeHistoryModal()">
+    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-2xl max-h-[75vh] flex flex-col shadow-2xl" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between p-5 border-b border-slate-100 flex-none">
+            <div class="flex items-center gap-2">
+                <iconify-icon class="text-indigo-500" icon="lucide:history"></iconify-icon>
+                <span class="text-sm font-semibold text-slate-800" id="history-modal-title">历史对话</span>
+            </div>
+            <button class="text-slate-400 hover:text-slate-600" onclick="closeHistoryModal()"><iconify-icon class="text-xl" icon="lucide:x"></iconify-icon></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 space-y-4" id="history-content"></div>
+    </div>
+</div>
+
+<!-- 确认弹窗 -->
+<div class="hidden fixed inset-0 z-[75] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" id="confirm-modal" onclick="closeConfirmModal()">
+    <div class="bg-white rounded-2xl border border-slate-200 w-full max-w-md shadow-2xl" onclick="event.stopPropagation()">
+        <div class="p-6">
+            <div class="flex items-start gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 flex-none">
+                    <iconify-icon icon="lucide:alert-triangle" class="text-xl"></iconify-icon>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-slate-800 text-base mb-1">确认进入下一阶段</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">若未完成子任务进入下一阶段，将会导致评分过低</p>
+                </div>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors" onclick="closeConfirmModal()">取消</button>
+                <button class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors" id="confirm-ok-btn">确认继续</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 帮助中心弹窗 -->
+<div class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" id="help-modal" onclick="document.getElementById('help-modal').classList.add('hidden')">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-slate-800">帮助中心</h3>
+            <button class="p-1 text-slate-400 hover:text-slate-600" onclick="document.getElementById('help-modal').classList.add('hidden')"><iconify-icon icon="lucide:x"></iconify-icon></button>
+        </div>
+        <div class="space-y-3">
+            <div class="bg-slate-50 rounded-lg p-3">
+                <div class="text-sm font-semibold text-slate-700 mb-1">如何开始学习？</div>
+                <div class="text-xs text-slate-500">在课程中心选择课程，进入实训空间后按子任务顺序操作，AI 副驾会实时指导。</div>
+            </div>
+            <div class="bg-slate-50 rounded-lg p-3">
+                <div class="text-sm font-semibold text-slate-700 mb-1">如何使用知识搜索？</div>
+                <div class="text-xs text-slate-500">在对话区输入问题，AI 会检索大数据技术知识库给出答案。</div>
+            </div>
+            <div class="bg-slate-50 rounded-lg p-3">
+                <div class="text-sm font-semibold text-slate-700 mb-1">如何查看实训报告？</div>
+                <div class="text-xs text-slate-500">完成全部子任务后点击生成报告，或右上角「我的报告」查看。</div>
+            </div>
+            <div class="bg-slate-50 rounded-lg p-3">
+                <div class="text-sm font-semibold text-slate-700 mb-1">如何调整字体大小？</div>
+                <div class="text-xs text-slate-500">右上角设置菜单中可调节页面字体大小（A-/默认/A+）。</div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 关于弹窗 -->
+<div class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" id="about-modal" onclick="document.getElementById('about-modal').classList.add('hidden')">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative" onclick="event.stopPropagation()">
+        <button class="absolute top-4 right-4 text-slate-400 hover:text-slate-600" onclick="document.getElementById('about-modal').classList.add('hidden')"><iconify-icon class="text-xl" icon="lucide:x"></iconify-icon></button>
+        <div class="text-center mb-5">
+            <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-100">
+                <img src="/static/img/logo-datatutor.png" alt="DataTutor" class="h-10 w-10 rounded-lg">
+            </div>
+            <h2 class="text-lg font-bold text-slate-800 mb-1">DataTutor</h2>
+            <p class="text-xs text-slate-500">大数据技术学科垂类智能教学助手</p>
+        </div>
+        <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 text-left space-y-3">
+            <div class="flex justify-between text-xs"><span class="text-slate-500">版本</span><span class="text-slate-700 mono">v4.0</span></div>
+            <div class="flex justify-between text-xs"><span class="text-slate-500">基座模型</span><span class="text-slate-700">讯飞星辰Agent ＋ 讯飞星辰Maas</span></div>
+            <div class="text-xs">
+                <div class="text-slate-500 mb-1.5">知识库（3 个）</div>
+                <div class="space-y-1 pl-3 border-l border-indigo-300">
+                    <div class="text-slate-700">大数据技术知识库</div>
+                    <div class="text-slate-700">实操诊断知识库</div>
+                    <div class="text-slate-700">实训任务模板库</div>
+                </div>
+            </div>
+            <div class="text-xs">
+                <div class="text-slate-500 mb-1.5">智能体（4 个）</div>
+                <div class="space-y-1 pl-3 border-l border-violet-300">
+                    <div class="text-slate-700">TeacherAgent <span class="text-slate-400">— 实训任务生成</span></div>
+                    <div class="text-slate-700">KnowledgeAgent <span class="text-slate-400">— 万能知识库</span></div>
+                    <div class="text-slate-700">TrainingAgent <span class="text-slate-400">— 实训副驾</span></div>
+                    <div class="text-slate-700">ReportAgent <span class="text-slate-400">— 实训报告生成</span></div>
+                </div>
+            </div>
+            <div class="flex justify-between text-xs"><span class="text-slate-500">开源地址</span><a href="https://github.com/Rosdwn/datatutor" target="_blank" class="text-indigo-600 hover:text-indigo-500">github.com/Rosdwn/datatutor</a></div>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-4 text-center">感谢讯飞提供的技术支持</p>
+    </div>
+</div>
+<script>
+function toggleSettings(){var p=document.getElementById('settings-popover');p.classList.toggle('hidden')}
+function adjustFontSize(d){var s=parseInt(localStorage.getItem('dt_font_size')||16)+d*2;s=Math.max(12,Math.min(24,s));document.documentElement.style.fontSize=s+'px';localStorage.setItem('dt_font_size',s)}
+(function(){var fs=parseInt(localStorage.getItem('dt_font_size')||16);if(fs!==16)document.documentElement.style.fontSize=fs+'px'})()
+</script>
 </body>
 </html>
