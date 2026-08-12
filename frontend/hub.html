@@ -80,7 +80,7 @@
             </div>
             <!-- 消息中心（铃铛） -->
             <div class="relative">
-                <button class="relative p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="togglePopover('msg-popover');renderMessages()">
+                <button id="msg-popover-btn" class="relative p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="event.stopPropagation();togglePopover('msg-popover');renderMessages()">
                     <iconify-icon class="text-xl" icon="lucide:bell"></iconify-icon>
                     <span class="hidden absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0F0B1F]" id="msg-badge"></span>
                 </button>
@@ -100,7 +100,7 @@
             </div>
             <!-- 设置 -->
             <div class="relative">
-                <button class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="togglePopover('settings-popover')">
+                <button id="settings-popover-btn" class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" onclick="event.stopPropagation();togglePopover('settings-popover')">
                     <iconify-icon class="text-xl" icon="lucide:settings"></iconify-icon>
                 </button>
                 <div class="hidden absolute top-full right-0 mt-2 w-56 bg-[#1A1535] rounded-xl shadow-xl border border-white/10 py-2 z-50" id="settings-popover">
@@ -367,17 +367,19 @@
         togglePopover('user-menu');
     }
     window.addEventListener('click', function(e) {
-        var btn = document.getElementById('user-menu-btn');
-        var menu = document.getElementById('user-menu');
-        if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
-            menu.classList.add('hidden');
-        }
-        // 设置 / 消息 弹层点击外部关闭
-        ['settings-popover', 'msg-popover'].forEach(function(pid) {
-            var p = document.getElementById(pid);
-            if (p && !p.contains(e.target) && !e.target.closest('[onclick*="togglePopover"]')) {
-                p.classList.add('hidden');
-            }
+        // 用 id + contains 判定，不依赖 onclick 属性查找（避免 web component 干扰）
+        var configs = [
+            {popover: 'msg-popover',       btn: 'msg-popover-btn'},
+            {popover: 'settings-popover',  btn: 'settings-popover-btn'},
+            {popover: 'user-menu',         btn: 'user-menu-btn'}
+        ];
+        configs.forEach(function(cfg) {
+            var popover = document.getElementById(cfg.popover);
+            var btn = document.getElementById(cfg.btn);
+            if (!popover || popover.classList.contains('hidden')) return;
+            if (btn && btn.contains(e.target)) return;       // 点自己按钮由 onclick 负责切换
+            if (popover.contains(e.target)) return;          // 点 popover 内部不关
+            popover.classList.add('hidden');
         });
     });
 
