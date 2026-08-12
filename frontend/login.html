@@ -355,11 +355,8 @@
             // 注册模式压缩间距，防止界面过高
             if (headerBox) { headerBox.classList.remove('mb-8'); headerBox.classList.add('mb-4'); }
             if (formEl) { formEl.classList.remove('space-y-4'); formEl.classList.add('space-y-2.5'); }
-            if (currentRole === 'teacher') {
-                teacherFields.classList.remove('hidden');
-            } else {
-                teacherFields.classList.add('hidden');
-            }
+            // 注册模式下隐藏 teacher-fields（工号已在 register-fields 中）
+            teacherFields.classList.add('hidden');
             // 自动加载验证码
             refreshCaptcha();
         } else {
