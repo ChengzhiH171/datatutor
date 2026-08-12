@@ -27,11 +27,21 @@ def _generate_course_code(course_id):
 @courses_bp.route('', methods=['GET'])
 @token_required
 def list_courses(current_user):
-    """获取课程列表：教师看全部，学生看公开课"""
-    if current_user.role in ('teacher', 'admin'):
+    """获取课程列表：admin 看全部；教师看自己创建 + 全站公开；学生看公开课"""
+    from models import User
+    if current_user.role == 'admin':
         courses = Course.query.all()
+    elif current_user.role == 'teacher':
+        # 归属权限：教师仅能查看自己创建的课程或全站公开(1)的课程
+        courses = Course.query.filter(
+            db.or_(Course.teacher_id == current_user.id, Course.is_public == 1)
+        ).all()
     else:
         courses = Course.query.filter_by(is_public=True).all()
+
+    # 课程创建者姓名映射（用于分配弹窗归属标识展示）
+    creator_ids = {c.teacher_id for c in courses}
+    creators = {u.id: (u.display_name or u.username) for u in User.query.filter(User.id.in_(creator_ids)).all()} if creator_ids else {}
 
     result = []
     for c in courses:
@@ -49,6 +59,7 @@ def list_courses(current_user):
             'description': c.description,
             'is_public': c.is_public,
             'teacher_id': c.teacher_id,
+            'teacher_name': creators.get(c.teacher_id, ''),
             'course_code': c.course_code or '',
             'subtask_count': total,
             'progress_percent': pct,
@@ -102,8 +113,13 @@ def get_course(current_user, course_id):
 def create_course(current_user):
     """创建课程"""
     data = request.get_json()
-    # admin 创建自动公开，普通教师默认私有
-    is_public = 1 if current_user.role == 'admin' else 0
+    # 公开状态：admin 创建直接公开(1)；教师勾选「全站公开」则进入待审核(2)；否则私有(0)
+    if current_user.role == 'admin':
+        is_public = 1
+    elif data.get('is_public'):
+        is_public = 2  # 待审核，等待管理员审批
+    else:
+        is_public = 0
     course = Course(
         teacher_id=current_user.id,
         name=data['name'],
@@ -363,13 +379,21 @@ def apply_public(current_user, course_id):
 @courses_bp.route('/admin/pending', methods=['GET'])
 @admin_required
 def pending_courses(current_user):
-    """管理员查看待审核课程"""
+    """管理员查看待审核课程（附教师姓名/工号，便于审核）"""
+    from models import User
     courses = Course.query.filter_by(is_public=2).all()
-    return jsonify({'courses': [{
-        'id': c.id, 'name': c.name, 'teacher_id': c.teacher_id,
-        'course_code': c.course_code, 'description': c.description,
-        'subtask_count': len(c.subtasks) if c.subtasks else 0
-    } for c in courses]})
+    result = []
+    for c in courses:
+        teacher = User.query.get(c.teacher_id)
+        result.append({
+            'id': c.id, 'name': c.name,
+            'teacher_uid': c.teacher_id,                        # 创建者 User.id
+            'teacher_name': (teacher.display_name or teacher.username) if teacher else '',  # 创建者姓名
+            'teacher_no': (teacher.teacher_id or '') if teacher else '',                      # 创建者工号
+            'course_code': c.course_code, 'description': c.description,
+            'subtask_count': len(c.subtasks) if c.subtasks else 0
+        })
+    return jsonify({'courses': result})
 
 
 @courses_bp.route('/admin/approve/<int:course_id>', methods=['POST'])
