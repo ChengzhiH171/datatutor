@@ -391,16 +391,13 @@ function initTrainingHours() {
         if (d.current_started_at) {
             sessionStartTime = new Date(d.current_started_at).getTime();
         } else {
-            var saved = localStorage.getItem('dt_session_start');
-            if (saved) sessionStartTime = parseInt(saved);
+            sessionStartTime = 0;
         }
         // 数据就绪后才启动计时器
         startElapsedTimer();
         setInterval(tickTrainingHours, 60000);
     }).catch(function() {
         var total = parseInt(localStorage.getItem(_trainingStorageKey()) || '0');
-        var saved = localStorage.getItem('dt_session_start');
-        if (saved) sessionStartTime = parseInt(saved);
         updateTrainingDisplay(total);
         startElapsedTimer();
         setInterval(tickTrainingHours, 60000);
@@ -676,7 +673,6 @@ function updateProgress() {
         circ.setAttribute('stroke-dashoffset', offset);
     }
     updateDashboardProgress();
-    tickTrainingHours();
     // 全部完成：显示生成报告按钮
     var reportBtn = document.getElementById('generate-report-btn');
     if (done > 0 && done === total) {
