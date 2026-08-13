@@ -28,13 +28,17 @@ def create_class(current_user):
 @classes_bp.route('/assign_course', methods=['POST'])
 @teacher_required
 def assign_course(current_user):
-    """教师给班级分配课程"""
+    """教师给班级分配课程（仅能分配自己创建或全站公开的课程；admin 无限制）"""
     data = request.get_json()
     class_id = data.get('class_id')
     course_id = data.get('course_id')
     cls = CourseClass.query.get_or_404(class_id)
     if cls.teacher_id != current_user.id:
         return jsonify({'error': '无权操作'}), 403
+    # 归属权限校验：admin 可分配任意课程；教师仅能分配自己创建或全站公开(1)的课程
+    course = Course.query.get_or_404(course_id)
+    if current_user.role != 'admin' and course.teacher_id != current_user.id and course.is_public != 1:
+        return jsonify({'error': '无权分配该课程（仅创建人或全站公开课程可分配）'}), 403
     existing = ClassCourse.query.filter_by(class_id=class_id, course_id=course_id).first()
     if existing:
         return jsonify({'error': '已分配该课程'}), 400

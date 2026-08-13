@@ -363,6 +363,8 @@ async function my_deleteCourse(cid, btn) {
   try {
     await API.deleteCourse(cid);
     toast('课程已删除', 'success');
+    // 修复：同步从缓存 my_allCourses 中移除已删除课程，避免「分配课程」弹窗仍展示该条目
+    my_allCourses = my_allCourses.filter(function(c){ return c.id !== cid; });
     // 刷新当前班级课程列表
     if (my_classId) {
       var cr = await API.getClassCourses(my_classId);
@@ -436,12 +438,18 @@ function my_closeDrawer() {
 function my_showAssign() {
   if (!my_classId) return;
   var assigned = []; document.querySelectorAll('#class-courses-area span').forEach(function(s){ var m = s.onclick?.toString().match(/my_openCourse\((\d+)/); if (m) assigned.push(parseInt(m[1])); });
+  var uid = (API.getCurrentUser() || {}).id;
   var html = '<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onclick="this.remove()"><div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl" onclick="event.stopPropagation()"><h3 class="text-lg font-bold mb-4">分配课程</h3><div class="space-y-2 max-h-80 overflow-y-auto">';
   var cnt = 0;
   my_allCourses.forEach(function(c) {
     if (assigned.indexOf(c.id) >= 0) return;
     cnt++;
-    html += '<div class="flex justify-between p-2 border rounded hover:bg-slate-50"><span class="text-sm">'+c.name+'</span><button class="px-2 py-1 bg-indigo-500 text-white text-xs rounded" onclick="my_doAssign('+c.id+')\">添加</button></div>';
+    // 归属权限标识：全站公开 / 待审核 / 我的课程
+    var badge = '';
+    if (c.is_public === 1) badge = '<span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-600">全站公开'+(c.teacher_name?' · '+c.teacher_name:'')+'</span>';
+    else if (c.is_public === 2) badge = '<span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-50 text-amber-600">待审核</span>';
+    else badge = '<span class="px-1.5 py-0.5 rounded text-[10px] '+(c.teacher_id === uid ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-500')+'">'+(c.teacher_id === uid ? '我的课程' : '私有')+'</span>';
+    html += '<div class="flex justify-between items-center p-2 border rounded hover:bg-slate-50"><span class="text-sm flex items-center gap-2">'+c.name+badge+'</span><button class="px-2 py-1 bg-indigo-500 text-white text-xs rounded" onclick="my_doAssign('+c.id+')\">添加</button></div>';
   });
   if (!cnt) html += '<p class="text-slate-400 text-sm text-center py-4">所有课程已分配</p>';
   html += '</div></div></div>';
@@ -491,6 +499,9 @@ async function my_saveCourse() {
   }
   var res = await apiFetch('/courses', { method: 'POST', body: JSON.stringify(body) });
   my_closeModal('modal-course');
+  // 勾选「全站公开」→ 提示已提交审核；未勾选 → 提示创建成功
+  if (pub) { toast('已提交全站公开申请，等待管理员审核', 'success'); }
+  else { toast('课程已创建', 'success'); }
   // 自动分配到当前班级
   if (my_classId && res && res.id) {
     try { await API.assignCourseToClass(my_classId, res.id); } catch(e) {}
@@ -500,6 +511,11 @@ async function my_saveCourse() {
     var cr = await API.getClassCourses(my_classId);
     my_renderClassCourses(cr.courses || []);
   }
+  // 刷新可分配课程缓存（确保新建课程在「分配课程」弹窗中可见、状态正确）
+  try {
+    var ar2 = await API.getCourses('teacher');
+    my_allCourses = Array.isArray(ar2) ? ar2 : (ar2.courses || []);
+  } catch(e) {}
 }
 
 // ── AI 辅助生成 ──
