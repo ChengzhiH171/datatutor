@@ -180,7 +180,9 @@ def register_terminal_handlers(socketio):
             ssh.connect(vm_host, port=vm_port, username=vm_user, password=vm_password, timeout=10)
             print(f'[TERM] SSH connected to {vm_host}', flush=True)
 
-            channel = ssh.invoke_shell(term='xterm-256color', width=120, height=40)
+            cols = int(data.get('cols') or 80)
+            rows = int(data.get('rows') or 24)
+            channel = ssh.invoke_shell(term='xterm-256color', width=cols, height=rows)
             channel.settimeout(0)
 
             student_sandbox = f'{sandbox}/student_{student_id}_vm{session_id}'
