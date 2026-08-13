@@ -1420,11 +1420,11 @@ function closeConfirmModal() {
     if (modal) modal.classList.add('hidden');
     _confirmCallback = null;
 }
-document.getElementById('confirm-ok-btn').addEventListener('click', function() {
+function confirmOk() {
     var cb = _confirmCallback;
     closeConfirmModal();
     if (typeof cb === 'function') cb();
-});
+}
 
 // === 我的报告（弹窗标题修复 + 列表展示） ===
 async function showMyReports() {
@@ -1515,7 +1515,7 @@ async function showMyReports() {
             </div>
             <div class="flex gap-3 justify-end">
                 <button class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors" onclick="closeConfirmModal()">取消</button>
-                <button class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors" id="confirm-ok-btn">确认继续</button>
+                <button class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors" id="confirm-ok-btn" onclick="confirmOk()">确认继续</button>
             </div>
         </div>
     </div>
