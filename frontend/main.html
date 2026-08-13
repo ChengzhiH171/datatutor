@@ -140,7 +140,7 @@
 </div>
 <div class="bg-slate-800/50 rounded-lg p-3">
 <div class="flex justify-between text-[11px] mb-1">
-<span>本月实训时长</span>
+<span>本课程耗时</span>
 <span class="text-indigo-400" id="training-hours">0h</span>
 </div>
 <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
@@ -380,11 +380,12 @@ var sessionTimer = null;    // 计时器句柄
 var courseName = '';        // 课程名称（用于弹窗标题等）
 var courseFiles = [];       // 课程数据文件列表
 
-// 实训时长追踪（从后端获取，localStorage 兜底）
+// 实训时长追踪（从后端获取，localStorage 兜底，按课程隔离）
+function _trainingStorageKey() { return 'dt_training_seconds_' + courseId; }
 function initTrainingHours() {
-    return API.getTrainingTime().then(function(d) {
+    return API.getTrainingTime(courseId).then(function(d) {
         var total = d.total_seconds || 0;
-        localStorage.setItem('dt_training_seconds', total);
+        localStorage.setItem(_trainingStorageKey(), total);
         updateTrainingDisplay(total);
         // 当前有进行中子任务 → 记录开始时间
         if (d.current_started_at) {
@@ -397,7 +398,7 @@ function initTrainingHours() {
         startElapsedTimer();
         setInterval(tickTrainingHours, 60000);
     }).catch(function() {
-        var total = parseInt(localStorage.getItem('dt_training_seconds') || '0');
+        var total = parseInt(localStorage.getItem(_trainingStorageKey()) || '0');
         var saved = localStorage.getItem('dt_session_start');
         if (saved) sessionStartTime = parseInt(saved);
         updateTrainingDisplay(total);
@@ -410,15 +411,15 @@ function updateTrainingDisplay(total) {
     var bar = document.getElementById('training-bar');
     var hours = (total / 3600).toFixed(1);
     if (el) el.innerText = hours + 'h';
-    if (bar) bar.style.width = Math.min((total / (30 * 3600)) * 100, 100) + '%';
+    if (bar) bar.style.width = Math.min((total / (10 * 3600)) * 100, 100) + '%';
 }
 
 function tickTrainingHours() {
-    var total = parseInt(localStorage.getItem('dt_training_seconds') || '0');
+    var total = parseInt(localStorage.getItem(_trainingStorageKey()) || '0');
     total += 60;
-    localStorage.setItem('dt_training_seconds', total);
+    localStorage.setItem(_trainingStorageKey(), total);
     updateTrainingDisplay(total);
-    API.getTrainingTime().then(function(){}).catch(function(){});
+    API.getTrainingTime(courseId).then(function(){}).catch(function(){});
 }
 
 // 耗时计时器

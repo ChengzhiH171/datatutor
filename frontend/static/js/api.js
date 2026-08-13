@@ -248,8 +248,10 @@ var API = {
     });
   },
 
-  getTrainingTime: function() {
-    return apiFetch('/progress/training_time');
+  getTrainingTime: function(courseId) {
+    var url = '/progress/training_time';
+    if (courseId) url += '?course_id=' + courseId;
+    return apiFetch(url);
   },
 
   // ---- 对话历史 ----

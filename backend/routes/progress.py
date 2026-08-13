@@ -101,9 +101,14 @@ def complete_subtask(current_user):
 @progress_bp.route('/training_time', methods=['GET'])
 @token_required
 def get_training_time(current_user):
-    """获取学生的总实训时长（秒）和当前会话起始时间"""
+    """获取学生的实训时长（秒）和当前会话起始时间，支持按课程过滤"""
     from models import Subtask
-    records = TaskProgress.query.filter_by(student_id=current_user.id).all()
+    course_id = request.args.get('course_id', type=int)
+    query = TaskProgress.query.filter_by(student_id=current_user.id)
+    if course_id:
+        subtask_ids = [s.id for s in Subtask.query.filter_by(course_id=course_id).all()]
+        query = query.filter(TaskProgress.subtask_id.in_(subtask_ids))
+    records = query.all()
     total_seconds = 0
     current_started_at = None
     for r in records:
