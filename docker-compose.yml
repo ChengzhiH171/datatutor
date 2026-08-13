@@ -4,14 +4,14 @@ services:
     container_name: datatutor-app
     network_mode: host
     environment:
-      - SECRET_KEY=datatutor-dev-secret-2026
+      - SECRET_KEY=${SECRET_KEY}
       - XUNFEI_API_KEY=${XUNFEI_API_KEY}
       - XUNFEI_API_SECRET=${XUNFEI_API_SECRET}
       - XUNFEI_FLOW_TRAINING=${XUNFEI_FLOW_TRAINING}
       - XUNFEI_FLOW_KNOWLEDGE=${XUNFEI_FLOW_KNOWLEDGE}
       - XUNFEI_FLOW_TEACHER=${XUNFEI_FLOW_TEACHER}
       - XUNFEI_FLOW_REPORT=${XUNFEI_FLOW_REPORT}
-      - MYSQL_URL=mysql+pymysql://root:datatutor123@127.0.0.1:3307/datatutor
+      - MYSQL_URL=${MYSQL_URL}
       - REDIS_HOST=127.0.0.1
       - REDIS_PORT=6379
       - DORIS_HOST=127.0.0.1
@@ -21,7 +21,7 @@ services:
       - DORIS_DB=datatutor_analytics
       - VM_HOST=127.0.0.1
       - VM_USER=root
-      - VM_PASSWORD=tanwei184@
+      - VM_PASSWORD=${VM_PASSWORD}
     restart: unless-stopped
     depends_on:
       - mysql
@@ -38,7 +38,7 @@ services:
     image: mysql:8.0
     container_name: datatutor-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: datatutor123
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: datatutor
     ports:
       - "127.0.0.1:3307:3306"
