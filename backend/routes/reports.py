@@ -56,10 +56,13 @@ def list_reports(current_user):
     return jsonify({'reports': [{
         'id': r.id,
         'course_id': r.course_id,
+        'course_name': r.course.name if r.course else '',
         'student_id': r.student_id,
         'grade': r.grade,
         'student_id': r.student_id,
         'total_time_hours': r.total_time_hours,
+        'content': r.content,
+        'preview': (r.content or '')[:100],
         'created_at': r.created_at.strftime('%Y-%m-%d %H:%M')
     } for r in reports]})
 
@@ -75,7 +78,7 @@ def download_report(current_user, report_id):
     bio.write(report.content.encode('utf-8'))
     bio.seek(0)
     from flask import send_file
-    return send_file(bio, mimetype='text/plain', as_attachment=True, download_name=f'report_{report_id}.txt')
+    return send_file(bio, mimetype='text/markdown', as_attachment=True, download_name=f'report_{report_id}.md')
 
 
 @reports_bp.route('/student/<int:student_id>', methods=['GET'])
@@ -86,6 +89,7 @@ def student_reports(current_user, student_id):
     return jsonify({'reports': [{
         'id': r.id,
         'course_id': r.course_id,
+        'course_name': r.course.name if r.course else '',
         'content': r.content,
         'total_time_hours': r.total_time_hours,
         'created_at': r.created_at.strftime('%Y-%m-%d %H:%M')

@@ -161,7 +161,7 @@ def get_profile(current_user):
         course_count = Report.query.filter_by(student_id=current_user.id).count()
     # 总实训时长
     reports = Report.query.filter_by(student_id=current_user.id).all()
-    total_hours = round(sum(r.total_time_hours for r in reports), 1)
+    total_minutes = int(sum(r.total_time_hours for r in reports))
     # 对话轮次 — 以 chat_messages 中 role='user' 的条数为准
     total_rounds = ChatMessage.query.filter_by(
         student_id=current_user.id,
@@ -179,7 +179,7 @@ def get_profile(current_user):
         'school': current_user.school or '',
         'email': current_user.email or '',
         'course_count': course_count,
-        'total_hours': total_hours,
+        'total_hours': total_minutes,
         'total_rounds': total_rounds,
         'report_count': report_count,
         'student_id': current_user.student_id or '',

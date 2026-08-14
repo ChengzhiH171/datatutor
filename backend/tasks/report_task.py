@@ -83,16 +83,16 @@ def generate_report_task(self, student_id, course_id):
 
             # 2. 组装 Prompt
             lines = [f'课程：{course.name}', f'目标：{course.description}', '']
-            total_hours = 0.0
+            total_minutes = 0
             for st in subtasks:
                 prog = progresses.get(st.id)
                 status = '完成' if prog and prog.status == 'completed' else '已跳过（未计时）'
-                hours = 0.0
+                minutes = 0
                 if prog and prog.started_at and prog.completed_at:
-                    hours = round((prog.completed_at - prog.started_at).total_seconds() / 3600, 1)
-                    total_hours += hours
-                lines.append(f'- [{status}] {st.name}（{hours}h）')
-            lines.append(f'\n总耗时：{total_hours}h')
+                    minutes = int((prog.completed_at - prog.started_at).total_seconds() / 60)
+                    total_minutes += minutes
+                lines.append(f'- [{status}] {st.name}（{minutes}分钟）')
+            lines.append(f'\n总耗时：{total_minutes}分钟')
 
             # 聊天摘要
             chats = ChatMessage.query.filter(
@@ -123,7 +123,7 @@ def generate_report_task(self, student_id, course_id):
                 student_id=student_id,
                 course_id=course_id,
                 content=result['content'],
-                total_time_hours=total_hours,
+                total_time_hours=total_minutes,
             )
             db.session.add(report)
             db.session.commit()
@@ -134,12 +134,12 @@ def generate_report_task(self, student_id, course_id):
             progress('completed', '报告已生成', {
                 'report_id': report.id,
                 'content': result['content'],
-                'total_hours': total_hours,
+                'total_hours': total_minutes,
             })
             return {
                 'report_id': report.id,
                 'content': result['content'],
-                'total_hours': total_hours,
+                'total_hours': total_minutes,
             }
 
     except Exception as e:
@@ -149,7 +149,7 @@ def generate_report_task(self, student_id, course_id):
 
 
 def _generate_report_sync(student_id, course_id):
-    """同步生成报告（无 Celery）返回 (content, grade, total_hours)"""
+    """同步生成报告（无 Celery）返回 (content, grade, total_minutes)"""
     from app import app
     with app.app_context():
         course = Course.query.get(course_id)
@@ -161,17 +161,17 @@ def _generate_report_sync(student_id, course_id):
             TaskProgress.student_id == student_id,
             TaskProgress.subtask_id.in_(subtask_ids)).all()}
         lines = [f'课程：{course.name}', f'目标：{course.description}', '']
-        total_hours = 0.0; completed_count = 0
+        total_minutes = 0; completed_count = 0
         for st in subtasks:
             prog = progresses.get(st.id)
             status = '完成' if prog and prog.status == 'completed' else '未完成'
             if prog and prog.status == 'completed': completed_count += 1
-            hours = 0.0
+            minutes = 0
             if prog and prog.started_at and prog.completed_at:
-                hours = round((prog.completed_at - prog.started_at).total_seconds() / 3600, 1)
-                total_hours += hours
-            lines.append(f'- [{status}] {st.name}（{hours}h）')
-        lines.append(f'\n总耗时：{total_hours}h | 完成率：{completed_count}/{len(subtasks)}')
+                minutes = int((prog.completed_at - prog.started_at).total_seconds() / 60)
+                total_minutes += minutes
+            lines.append(f'- [{status}] {st.name}（{minutes}分钟）')
+        lines.append(f'\n总耗时：{total_minutes}分钟 | 完成率：{completed_count}/{len(subtasks)}')
         chats = ChatMessage.query.filter(ChatMessage.student_id == student_id,
             ChatMessage.subtask_id.in_(subtask_ids)).order_by(ChatMessage.created_at).limit(20).all()
         if chats:
@@ -195,6 +195,6 @@ def _generate_report_sync(student_id, course_id):
             elif rate >= 0.4: grade = 'D'
             else: grade = 'F'
         report = Report(student_id=student_id, course_id=course_id,
-            content=result['content'], total_time_hours=total_hours, grade=grade)
+            content=result['content'], total_time_hours=total_minutes, grade=grade)
         db.session.add(report); db.session.commit()
-        return result['content'], grade, total_hours
+        return result['content'], grade, total_minutes

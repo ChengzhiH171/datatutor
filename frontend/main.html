@@ -141,7 +141,7 @@
 <div class="bg-slate-800/50 rounded-lg p-3">
 <div class="flex justify-between text-[11px] mb-1">
 <span>本课程耗时</span>
-<span class="text-indigo-400" id="training-hours">0h</span>
+<span class="text-indigo-400" id="training-hours">0 分钟</span>
 </div>
 <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
 <div class="h-full bg-indigo-500 transition-all duration-500" id="training-bar" style="width:0%"></div>
@@ -398,9 +398,9 @@ function initTrainingHours() {
 function updateTrainingDisplay(total) {
     var el = document.getElementById('training-hours');
     var bar = document.getElementById('training-bar');
-    var hours = (total / 3600).toFixed(1);
-    if (el) el.innerText = hours + 'h';
-    if (bar) bar.style.width = Math.min((total / (10 * 3600)) * 100, 100) + '%';
+    var minutes = Math.round(total / 60);
+    if (el) el.innerText = minutes + ' 分钟';
+    if (bar) bar.style.width = Math.min((total / (600 * 60)) * 100, 100) + '%';
 }
 
 function tickTrainingHours() {
@@ -1427,6 +1427,7 @@ async function showMyReports() {
     try {
         var data = await API.listReports();
         var reports = (data.reports || data || []);
+        window._myReports = reports;
         if (!reports.length) {
             content.innerHTML = '<div class="text-center py-12 text-slate-400 text-sm"><iconify-icon icon="lucide:file-question" class="text-3xl mb-2"></iconify-icon><p>暂无已生成的实训报告</p></div>';
             return;
@@ -1435,14 +1436,14 @@ async function showMyReports() {
         reports.forEach(function(r) {
             var gradeColor = r.grade && r.grade >= 80 ? 'text-green-400' : r.grade && r.grade >= 60 ? 'text-amber-400' : 'text-red-400';
             var date = r.created_at ? new Date(r.created_at).toLocaleString('zh-CN') : '未知时间';
-            html += '<div class="bg-white/5 rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-colors cursor-pointer" onclick="API.downloadReport(' + r.id + ')">'
+            html += '<div class="bg-white/5 rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-colors cursor-pointer" onclick="viewMyReportDetail(' + r.id + ')">'
                 + '<div class="flex items-center justify-between mb-1">'
                 + '<span class="text-sm font-semibold text-slate-200">' + htmlEscape(r.course_name || courseName || '实训报告') + '</span>'
                 + '<span class="text-sm font-bold ' + gradeColor + '">' + (r.grade != null ? r.grade + '分' : '未评分') + '</span>'
                 + '</div>'
                 + '<div class="flex items-center gap-3 text-xs text-slate-400">'
                 + '<span><iconify-icon icon="lucide:clock" class="mr-1"></iconify-icon>' + date + '</span>'
-                + (r.total_time_hours != null ? '<span><iconify-icon icon="lucide:timer" class="mr-1"></iconify-icon>' + r.total_time_hours.toFixed(1) + 'h</span>' : '')
+                + (r.total_time_hours != null ? '<span><iconify-icon icon="lucide:timer" class="mr-1"></iconify-icon>' + Math.round(r.total_time_hours) + ' 分钟</span>' : '')
                 + '</div>'
                 + '<div class="mt-2 text-xs text-indigo-400 flex items-center gap-1"><iconify-icon icon="lucide:download"></iconify-icon> 点击下载报告</div>'
                 + '</div>';
@@ -1452,6 +1453,20 @@ async function showMyReports() {
     } catch(e) {
         content.innerHTML = '<div class="text-center py-12 text-red-400 text-sm">加载失败: ' + htmlEscape(e.message) + '</div>';
     }
+}
+
+function viewMyReportDetail(reportId) {
+    var r = (window._myReports || []).find(function(x){ return x.id === reportId; });
+    if (!r) { showMyReports(); return; }
+    var title = document.getElementById('report-modal-title');
+    if (title) title.innerText = (r.course_name || courseName || '实训报告');
+    var content = document.getElementById('report-content');
+    var mdHtml = (typeof marked !== 'undefined' && marked.parse) ? marked.parse(r.content || '') : htmlEscape(r.content || '');
+    content.innerHTML = '<div class="flex items-center justify-between mb-4">'
+        + '<button class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1" onclick="showMyReports()"><iconify-icon icon="lucide:arrow-left"></iconify-icon> 返回列表</button>'
+        + '<button class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1" onclick="API.downloadReport(' + r.id + ')"><iconify-icon icon="lucide:download"></iconify-icon> 下载 .md</button>'
+        + '</div>'
+        + '<div class="text-sm text-slate-300 leading-relaxed prose prose-invert max-w-none">' + mdHtml + '</div>';
 }
 </script>
 

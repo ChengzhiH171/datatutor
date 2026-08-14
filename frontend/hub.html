@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="/static/img/logo-datatutor.png"/>
 <script src="https://modao.cc/agent-py/static/source/js/tailwindcss.js"></script>
 <script src="https://modao.cc/agent-py/static/source/js/iconify-icon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; background: #0F0B1F; }
@@ -41,6 +42,22 @@
     @keyframes progress-shift { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
     .toggle-switch { transition: background-color .2s; }
     .toggle-knob { transition: transform .2s; }
+
+    /* 报告 Markdown 详情样式（深色主题） */
+    .markdown-body { color: #e2e8f0; line-height: 1.7; font-size: 14px; }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 { color: #f1f5f9; font-weight: 700; margin: 1em 0 0.5em; }
+    .markdown-body h1 { font-size: 1.4em; } .markdown-body h2 { font-size: 1.2em; } .markdown-body h3 { font-size: 1.05em; }
+    .markdown-body strong { color: #ffffff; }
+    .markdown-body table { border-collapse: collapse; margin: 1em 0; width: 100%; }
+    .markdown-body th, .markdown-body td { border: 1px solid rgba(255,255,255,0.15); padding: 6px 10px; text-align: left; }
+    .markdown-body th { background: rgba(255,255,255,0.06); color: #f1f5f9; }
+    .markdown-body code { background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: #a5b4fc; }
+    .markdown-body pre { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .markdown-body pre code { background: none; padding: 0; color: #e2e8f0; }
+    .markdown-body ul, .markdown-body ol { padding-left: 1.5em; margin: 0.5em 0; }
+    .markdown-body li { margin: 0.25em 0; }
+    .markdown-body p { margin: 0.5em 0; }
+    .markdown-body a { color: #818cf8; }
 </style>
 </head>
 <body class="min-h-screen text-white dot-bg">
@@ -495,13 +512,14 @@
         content.innerHTML = '<div class="text-center py-8 text-slate-500">加载中...</div>';
         try {
             var data = await API.listReports();
+            window._myReports = data.reports || [];
             if (data.reports && data.reports.length > 0) {
                 var html = '';
                 data.reports.forEach(function(r) {
                     html += '<div class="bg-white/5 border border-white/10 rounded-xl p-4 mb-3 hover:bg-white/10 cursor-pointer" onclick="viewReportDetail(' + r.id + ')">' +
                         '<div class="flex items-center justify-between mb-1"><span class="text-sm font-semibold">' + r.course_name + '</span>' +
                         '<button class="text-xs text-indigo-400 hover:text-indigo-300" onclick="event.stopPropagation();API.downloadReport(' + r.id + ')">下载</button></div>' +
-                        '<div class="text-xs text-slate-500">' + r.created_at + ' · ' + r.total_time_hours + '小时</div>' +
+                        '<div class="text-xs text-slate-500">' + r.created_at + ' · ' + Math.round(r.total_time_hours) + ' 分钟</div>' +
                         '<div class="text-xs text-slate-400 mt-2 line-clamp-2">' + r.preview + '</div></div>';
                 });
                 content.innerHTML = html;
@@ -512,18 +530,16 @@
             content.innerHTML = '<div class="text-red-400 text-center py-8">加载失败: ' + e.message + '</div>';
         }
     }
-    async function viewReportDetail(reportId) {
-        // 复用已有列表的 modal，加载完整内容
+    function viewReportDetail(reportId) {
         var content = document.getElementById('report-list-content');
-        content.innerHTML = '<div class="text-center py-8 text-slate-500">加载中...</div>';
-        try {
-            var data = await API.listReports();
-            var r = (data.reports || []).find(function(rp) { return rp.id === reportId; });
-            if (r) {
-                // 重新请求生成来获取完整内容 - 简单方案：直接重新生成内容
-                content.innerHTML = '<div class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">' + r.preview.replace('...','') + '</div><button class="mt-3 text-xs text-indigo-400" onclick="showMyReports()">← 返回列表</button>';
-            }
-        } catch(e) { }
+        var r = (window._myReports || []).find(function(rp) { return rp.id === reportId; });
+        if (!r) { showMyReports(); return; }
+        var mdHtml = (typeof marked !== 'undefined' && marked.parse) ? marked.parse(r.content || '') : (r.content || '').replace(/</g, '&lt;');
+        content.innerHTML = '<div class="flex items-center justify-between mb-4">'
+            + '<button class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1" onclick="showMyReports()"><iconify-icon icon="lucide:arrow-left"></iconify-icon> 返回列表</button>'
+            + '<button class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1" onclick="API.downloadReport(' + r.id + ')"><iconify-icon icon="lucide:download"></iconify-icon> 下载 .md</button>'
+            + '</div>'
+            + '<div class="markdown-body">' + mdHtml + '</div>';
     }
     function closeReportModal() { document.getElementById('report-modal').classList.add('hidden'); }
 

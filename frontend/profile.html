@@ -54,7 +54,7 @@
       <div class="text-[10px] text-slate-500 uppercase tracking-wider mt-1">完成子任务</div>
     </div>
     <div class="stat-card bg-white/[0.04] border border-white/[0.06] rounded-xl p-4 text-center">
-      <div class="text-2xl font-bold text-emerald-400 count-up"><span id="stat-hours">0</span><span class="text-sm ml-0.5">h</span></div>
+      <div class="text-2xl font-bold text-emerald-400 count-up"><span id="stat-hours">0</span><span class="text-sm ml-0.5">分钟</span></div>
       <div class="text-[10px] text-slate-500 uppercase tracking-wider mt-1">实训时长</div>
     </div>
     <div class="stat-card bg-white/[0.04] border border-white/[0.06] rounded-xl p-4 text-center">
@@ -137,7 +137,7 @@ function loadStats() {
     document.getElementById('courses-list').innerHTML = html || '<div class="text-center py-6 text-slate-500 text-sm">暂无课程，<a href=\"hub.html\" class=\"text-indigo-400 hover:underline\">去选课</a></div>';
     setNum('stat-completed', completed);
     setNum('stat-rounds', rounds);
-    setNum('stat-hours', hours.toFixed(1));
+    setNum('stat-hours', Math.round(hours));
     setNum('profile-level', Math.min(99, Math.floor(completed / 5) + 1));
   }).catch(function() {
     document.getElementById('courses-list').innerHTML = '<div class="text-center py-6 text-slate-500 text-sm">加载失败</div>';
