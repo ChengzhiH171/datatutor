@@ -8,17 +8,30 @@ import redis_client
 classes_bp = Blueprint('classes', __name__)
 
 
+def _next_class_code():
+    """按顺序生成唯一班级码：DS2026-01、DS2026-02 …（后端保证不重复）"""
+    import re
+    from datetime import datetime
+    prefix = f'DS{datetime.utcnow().year}-'
+    max_num = 0
+    for c in CourseClass.query.filter(CourseClass.class_code.like(prefix + '%')).all():
+        m = re.match(r'DS\d{4}-(\d+)', c.class_code or '')
+        if m:
+            max_num = max(max_num, int(m.group(1)))
+    return f'{prefix}{str(max_num + 1).zfill(2)}'
+
+
 @classes_bp.route('/create', methods=['POST'])
 @teacher_required
 def create_class(current_user):
-    """教师创建班级（不关联课程）"""
+    """教师创建班级（不关联课程）。班级码为空或重复时，后端按顺序自动生成唯一码"""
     data = request.get_json()
     name = data.get('name', '').strip()
     class_code = data.get('class_code', '').strip()
-    if not name or not class_code:
-        return jsonify({'error': '班级名称和班级码不能为空'}), 400
-    if CourseClass.query.filter_by(class_code=class_code).first():
-        return jsonify({'error': '班级码已存在'}), 400
+    if not name:
+        return jsonify({'error': '班级名称不能为空'}), 400
+    if not class_code or CourseClass.query.filter_by(class_code=class_code).first():
+        class_code = _next_class_code()
     cls = CourseClass(teacher_id=current_user.id, name=name, class_code=class_code)
     db.session.add(cls)
     db.session.commit()

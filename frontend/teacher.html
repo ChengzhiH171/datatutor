@@ -465,15 +465,14 @@ async function my_doAssign(cid) {
 // ===== CREATE CLASS =====
 function my_showCreateClass() {
   document.getElementById('input-class-name').value = '';
-  document.getElementById('input-class-code').value = 'DS'+new Date().getFullYear()+'-'+String(Math.floor(Math.random()*90+10)).padStart(2,'0');
+  document.getElementById('input-class-code').value = '系统自动分配';
   document.getElementById('modal-class').classList.remove('hidden');
 }
 
 async function my_createClass() {
   var n = document.getElementById('input-class-name').value.trim();
-  var c = document.getElementById('input-class-code').value.trim();
-  if (!n || !c) return;
-  await API.createClass(n, c);
+  if (!n) return;
+  await API.createClass(n, '');
   my_closeModal('modal-class');
   await my_load();
 }
