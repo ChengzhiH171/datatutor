@@ -6,14 +6,14 @@
 
 | 功能 | 说明 |
 |------|------|
-| AI 实训副驾 | 终端内实时对话辅导（实训副驾Agent），对话自动保存供报告生成Agent使用 |
-| AI 课程生成 | Teacher Agent 自动生成实训课程和子任务 |
-| Docker 隔离实训 | 每个学生独立容器，工具包宿主机挂载（镜像瘦身至 229MB） |
+| AI 实训副驾 | 终端内实时对话辅导（讯飞 Training Agent），对话自动保存供Report Agent使用 |
+| AI 课程生成 | 讯飞Teacher Agent 自动生成实训课程和子任务 |
+| Docker 隔离实训 | 每个学生独立容器，工具包宿主机挂载（镜像瘦身至229MB） |
 | 多角色管理 | 学生/教师/管理员三端，课程班级子任务全生命周期 |
 | 学情分析 | 进度追踪、任务完成率统计 |
 | 实训计时 | 全程累计计时，后台 Persist，切换子任务不清零 |
-| AI 实训报告生成 | 对话历史+学情分析多维度评估（讯飞报告生成Agent） |
-| AI 知识库问答 | 大数据领域知识 RAG 问答（讯飞知识 Agent） |
+| AI 实训报告生成 | 对话历史+学情分析多维度评估（讯飞 Report Agent） |
+| AI 知识库问答 | 大数据领域知识 RAG 问答（讯飞 Knowledge Agent） |
 
 ## 技术栈
 
@@ -59,7 +59,7 @@ docker build -t datatutor-student -f Dockerfile_student .
 docker compose up -d
 ```
 
-访问: http://localhost:5000
+访问: http://localhost（端口号80）
 
 
 ### 项目结构
