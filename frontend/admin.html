@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>管理员 - DataTutor</title>
+<title>管理员 - 大数据实训助手</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
 <script src="/static/js/api.js"></script>
@@ -15,7 +15,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <!-- SIDEBAR -->
 <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full">
-  <div class="p-5 border-b"><div class="font-bold text-slate-800">DataTutor</div><div class="text-xs text-slate-400">管理员面板</div></div>
+  <div class="p-5 border-b"><div class="font-bold text-slate-800">大数据实训助手</div><div class="text-xs text-slate-400">管理员面板</div></div>
   <div class="flex-1 overflow-y-auto p-4">
     <h3 class="text-xs font-bold text-slate-400 uppercase mb-3">消息预览</h3>
     <div id="pending-list" class="space-y-2"></div>
@@ -229,7 +229,6 @@ async function loadTeachers(){
     <div class="flex-1 overflow-y-auto p-6 space-y-5">
       <div class="bg-violet-50 rounded-xl p-5 border border-violet-200">
         <div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><iconify-icon class="text-violet-500" icon="lucide:sparkles"></iconify-icon><span class="text-sm font-bold text-violet-700">AI 辅助生成</span></div>
-          <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-full border border-violet-200"><svg width="14" height="14" viewBox="0 0 1024 1024"><path fill="#7B5BFF" d="M512 64L96 320v416l416 256 416-256V320z"/><path fill="#FFFFFF" d="M512 280c-60 0-108 48-108 108s48 108 108 108 108-48 108-108-48-108-108-108zm0 168c-33 0-60-27-60-60s27-60 60-60 60 27 60 60-27 60-60 60z"/><circle cx="430" cy="340" r="14" fill="#3F2DCB"/><circle cx="594" cy="340" r="14" fill="#3F2DCB"/><path fill="#FFB527" d="M620 200l30-15 30 15-30 15z"/></svg><span class="text-[10px] font-bold text-violet-700">由讯飞星火驱动</span></div>
         </div>
         <p class="text-xs text-violet-600 mb-3">描述实训任务，AI 自动填充课程名称、简介和子任务。</p>
         <textarea class="w-full px-3 py-2.5 bg-white border border-violet-200 rounded-xl text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100 resize-none" id="input-ai-prompt" placeholder="例如：利用Hive对淘宝用户日志进行多维度分析" rows="2"></textarea>

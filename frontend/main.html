@@ -4,8 +4,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>实训空间 - DataTutor 大数据实训智能副驾</title>
-<link rel="icon" type="image/png" href="/static/img/logo-datatutor.png"/>
+<title>实训空间 - 大数据实训助手</title>
+<link rel="icon" type="image/png" href="/static/img/logo.png"/>
 <script src="https://modao.cc/agent-py/static/source/js/tailwindcss.js"></script>
 <script src="https://modao.cc/agent-py/static/source/js/iconify-icon.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -56,8 +56,8 @@
 <iconify-icon class="text-lg" icon="lucide:arrow-left"></iconify-icon>
 </a>
 <a class="flex items-center gap-2" href="main.html">
-<img src="/static/img/logo-datatutor.png" alt="DataTutor" class="h-8 w-8 rounded">
-<span class="font-bold text-slate-800 text-lg tracking-tight">DataTutor</span>
+<img src="/static/img/logo.png" alt="大数据实训助手" class="h-8 w-8 rounded">
+<span class="font-bold text-slate-800 text-lg tracking-tight">大数据实训助手</span>
 </a>
 <div class="h-4 w-[1px] bg-slate-200 mx-1"></div>
 <div class="text-sm text-slate-500 font-medium" id="course-name-display">加载中...</div>
@@ -88,7 +88,7 @@
         <iconify-icon icon="lucide:help-circle"></iconify-icon> 帮助中心
     </a>
     <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer" onclick="toggleSettings();document.getElementById('about-modal').classList.remove('hidden')">
-        <iconify-icon icon="lucide:info"></iconify-icon> 关于 DataTutor
+        <iconify-icon icon="lucide:info"></iconify-icon> 关于我们
     </a>
     <div class="h-[1px] bg-slate-100 my-1"></div>
     <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50" href="profile.html">
@@ -219,7 +219,7 @@
 <div class="flex-none px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
 <div class="flex items-center gap-2">
 <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-<span class="text-xs font-semibold text-slate-600 uppercase tracking-wider">DataTutor AI Agent</span>
+<span class="text-xs font-semibold text-slate-600 uppercase tracking-wider">大数据实训助手 AI Agent</span>
 </div>
 <div class="flex items-center gap-3">
 <button class="text-slate-400 hover:text-indigo-600 flex items-center gap-1 text-xs transition-colors" onclick="showChatHistory()" title="查看当前子任务的历史对话">
@@ -247,7 +247,7 @@
 </div>
 </div>
 <div class="relative flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 focus-within:ring-2 focus-within:ring-indigo-500/10 focus-within:border-indigo-500 transition-all">
-<textarea class="flex-1 bg-transparent border-none outline-none text-sm p-2 resize-none max-h-32" id="chat-input" placeholder="@DataTutor 有问题尽管问我..." rows="1"></textarea>
+<textarea class="flex-1 bg-transparent border-none outline-none text-sm p-2 resize-none max-h-32" id="chat-input" placeholder="@大数据实训助手 有问题尽管问我..." rows="1"></textarea>
 <button class="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-md flex-none" id="chat-send-btn" onclick="sendChatMessage()">
 <iconify-icon class="text-lg" icon="lucide:send" style="pointer-events:none"></iconify-icon>
 </button>
@@ -466,7 +466,7 @@ function updateDashboardProgress() {
     if (pctEl) pctEl.innerText = pct + '%';
 }
 
-var SYSTEM_PROMPT_BASE = '你是DataTutor，运行在实训平台网页中的AI副驾。学生看到三栏布局：左侧任务列表、中间对话区、右侧在线终端。核心信条：不动手学不会。理论仅解释现象。统一规则：确认即推进——学生贴出版本号、说安装好跑通，只回复进度条+完成宣告+下一指令≤三句。绝对禁止百科输出。任务锁定禁止跳其它技术栈。首条格式：▮▯▯▯[0/N]任务名→路线→产出→当前子任务→指令全在一段。禁止分两段、禁止客套、禁止代码块。行动优先首句必为可执行指令。边做边讲≤3句。代码给骨架，卡住两次给完整代码。判定完成时在回复末尾输出[SUBTASK_COMPLETE]。\n\n【工作目录硬约束】学生终端启动时已自动 cd 到 /home/learner/datatutor/student_{id}_vm{n}/ （{id}=数据库用户id，{n}=虚拟机编号0/1/2...）。这是唯一可写工作目录。绝对禁止：cd /opt、/usr、/etc、/var、/root 等系统目录做文件操作（learner 无写权限必报 Permission denied）。所有 wget/tar/git clone/curl -o/vi/cp/mv/重定向 > 都必须在当前工作目录执行。如确实要装到 /opt，先在工作目录下载解压，再用 sudo mv（不推荐）。规则：先 pwd 看当前位置，写文件路径全部相对当前目录或 ~/datatutor/student_*/ 开头。';
+var SYSTEM_PROMPT_BASE = '你是大数据实训助手，运行在实训平台网页中的AI副驾。学生看到三栏布局：左侧任务列表、中间对话区、右侧在线终端。核心信条：不动手学不会。理论仅解释现象。统一规则：确认即推进——学生贴出版本号、说安装好跑通，只回复进度条+完成宣告+下一指令≤三句。绝对禁止百科输出。任务锁定禁止跳其它技术栈。首条格式：▮▯▯▯[0/N]任务名→路线→产出→当前子任务→指令全在一段。禁止分两段、禁止客套、禁止代码块。行动优先首句必为可执行指令。边做边讲≤3句。代码给骨架，卡住两次给完整代码。判定完成时在回复末尾输出[SUBTASK_COMPLETE]。\n\n【工作目录硬约束】学生终端启动时已自动 cd 到 /home/learner/datatutor/student_{id}_vm{n}/ （{id}=数据库用户id，{n}=虚拟机编号0/1/2...）。这是唯一可写工作目录。绝对禁止：cd /opt、/usr、/etc、/var、/root 等系统目录做文件操作（learner 无写权限必报 Permission denied）。所有 wget/tar/git clone/curl -o/vi/cp/mv/重定向 > 都必须在当前工作目录执行。如确实要装到 /opt，先在工作目录下载解压，再用 sudo mv（不推荐）。规则：先 pwd 看当前位置，写文件路径全部相对当前目录或 ~/datatutor/student_*/ 开头。';
 
 // === 课程文件下载 ===
 async function loadCourseFilesForStudent() {
@@ -1171,7 +1171,7 @@ function toggleKnowledge(show) {
         if (!knowledgeInited) {
             knowledgeInited = true;
             var st = subtasks[currentSubtaskIdx];
-            var sysContent = '你是DataTutor的知识答疑助手。学生正在实训中。当前子任务：' + (st ? st.name : '')
+            var sysContent = '你是大数据实训助手的知识答疑助手。学生正在实训中。当前子任务：' + (st ? st.name : '')
                 + '。知识点背景：' + ((st && st.knowledge_text) || (st ? st.command : '') || '无预设内容，请基于当前操作回答。')
                 + ' 请简洁回答，每条回复≤200字。';
             knowledgeHistory = [{ role: 'system', content: sysContent }];
@@ -1548,14 +1548,13 @@ function viewMyReportDetail(reportId) {
         <button class="absolute top-4 right-4 text-slate-400 hover:text-slate-600" onclick="document.getElementById('about-modal').classList.add('hidden')"><iconify-icon class="text-xl" icon="lucide:x"></iconify-icon></button>
         <div class="text-center mb-5">
             <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-100">
-                <img src="/static/img/logo-datatutor.png" alt="DataTutor" class="h-10 w-10 rounded-lg">
+                <img src="/static/img/logo.png" alt="大数据实训助手" class="h-10 w-10 rounded-lg">
             </div>
-            <h2 class="text-lg font-bold text-slate-800 mb-1">DataTutor</h2>
+            <h2 class="text-lg font-bold text-slate-800 mb-1">大数据实训助手</h2>
             <p class="text-xs text-slate-500">大数据技术学科垂类智能教学助手</p>
         </div>
         <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 text-left space-y-3">
             <div class="flex justify-between text-xs"><span class="text-slate-500">版本</span><span class="text-slate-700 mono">v4.0</span></div>
-            <div class="flex justify-between text-xs"><span class="text-slate-500">基座模型</span><span class="text-slate-700">讯飞星辰Agent ＋ 讯飞星辰Maas</span></div>
             <div class="text-xs">
                 <div class="text-slate-500 mb-1.5">知识库（3 个）</div>
                 <div class="space-y-1 pl-3 border-l border-indigo-300">
@@ -1573,9 +1572,7 @@ function viewMyReportDetail(reportId) {
                     <div class="text-slate-700">ReportAgent <span class="text-slate-400">— 实训报告生成</span></div>
                 </div>
             </div>
-            <div class="flex justify-between text-xs"><span class="text-slate-500">开源地址</span><a href="https://github.com/Rosdwn/datatutor" target="_blank" class="text-indigo-600 hover:text-indigo-500">github.com/Rosdwn/datatutor</a></div>
         </div>
-        <p class="text-[11px] text-slate-400 mt-4 text-center">感谢讯飞提供的技术支持</p>
     </div>
 </div>
 <script>

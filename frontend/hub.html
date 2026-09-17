@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>实训章节 - DataTutor 大数据实训智能副驾</title>
-<link rel="icon" type="image/png" href="/static/img/logo-datatutor.png"/>
+<title>实训章节 - 大数据实训助手</title>
+<link rel="icon" type="image/png" href="/static/img/logo.png"/>
 <script src="https://modao.cc/agent-py/static/source/js/tailwindcss.js"></script>
 <script src="https://modao.cc/agent-py/static/source/js/iconify-icon.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -66,8 +66,8 @@
 <header class="fixed top-0 left-0 right-0 z-50 bg-[#0F0B1F]/80 backdrop-blur-xl border-b border-white/5">
     <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <div class="flex items-center gap-3 logo-glow">
-            <img src="/static/img/logo-datatutor.png" alt="DataTutor" class="h-9 w-9 rounded-lg">
-            <span class="text-xl font-extrabold tracking-tight">DataTutor</span>
+            <img src="/static/img/logo.png" alt="大数据实训助手" class="h-9 w-9 rounded-lg">
+            <span class="text-xl font-extrabold tracking-tight">大数据实训助手</span>
         </div>
         <div class="flex items-center gap-3">
             <div class="hidden lg:flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 focus-within:border-indigo-400 focus-within:bg-white/10 transition-all">
@@ -123,7 +123,7 @@
                     </a>
                     <!-- 关于 -->
                     <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer" onclick="showAboutModal()">
-                        <iconify-icon icon="lucide:info"></iconify-icon> 关于 DataTutor
+                        <iconify-icon icon="lucide:info"></iconify-icon> 关于我们
                     </a>
                     <div class="h-[1px] bg-white/10 my-1"></div>
                     <a class="flex items-center gap-3 px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5" href="profile.html">
@@ -172,7 +172,7 @@
         <h1 class="text-3xl font-black mb-2">
             选择你的<span class="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">实训章节</span>
         </h1>
-        <p class="text-slate-500 text-sm max-w-md mx-auto">每个章节包含多个子任务，DataTutor 全程护航。</p>
+        <p class="text-slate-500 text-sm max-w-md mx-auto">每个章节包含多个子任务，大数据实训助手全程护航。</p>
         <button class="mt-3 px-4 py-1.5 bg-indigo-500/10 border border-indigo-400/20 rounded-full text-xs text-indigo-300 hover:bg-indigo-500/20 transition" onclick="showClassJoin()">
             <iconify-icon icon="lucide:users" class="mr-1 align-middle"></iconify-icon>加入班级
         </button>
@@ -466,7 +466,7 @@
         var q = inp.value.trim();
         if (!q) return;
         document.getElementById('search-modal-title').innerText = '搜索：' + q;
-        document.getElementById('search-modal-content').innerHTML = '<div class="text-center py-12"><iconify-icon icon="lucide:loader" class="animate-spin text-3xl text-indigo-400"></iconify-icon><p class="text-slate-500 text-sm mt-3">讯飞知识库agent正在检索大数据技术知识库</p></div>';
+        document.getElementById('search-modal-content').innerHTML = '<div class="text-center py-12"><iconify-icon icon="lucide:loader" class="animate-spin text-3xl text-indigo-400"></iconify-icon><p class="text-slate-500 text-sm mt-3">知识库智能助手正在检索大数据技术知识库</p></div>';
         document.getElementById('search-modal').classList.remove('hidden');
         try {
             var data = await API.aiKnowledge([{role:'user',content:q}]);
@@ -720,7 +720,7 @@
             </div>
             <div class="bg-white/5 border border-white/10 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-1"><iconify-icon class="text-emerald-400" icon="lucide:search"></iconify-icon><span class="text-sm font-semibold text-white">如何搜索知识点？</span></div>
-                <p class="text-xs text-slate-400 leading-relaxed">在顶部搜索框输入关键词并回车，讯飞知识库 agent 将为你检索大数据技术知识库中的相关内容。</p>
+                <p class="text-xs text-slate-400 leading-relaxed">在顶部搜索框输入关键词并回车，知识库智能助手将为你检索大数据技术知识库中的相关内容。</p>
             </div>
             <div class="bg-white/5 border border-white/10 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-1"><iconify-icon class="text-amber-400" icon="lucide:file-bar-chart"></iconify-icon><span class="text-sm font-semibold text-white">如何查看实训报告？</span></div>
@@ -739,14 +739,13 @@
         <button class="absolute top-4 right-4 text-slate-500 hover:text-white" onclick="closeAboutModal()"><iconify-icon class="text-xl" icon="lucide:x"></iconify-icon></button>
         <div class="text-center mb-5">
             <div class="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-indigo-400/20">
-                <img src="/static/img/logo-datatutor.png" alt="DataTutor" class="h-10 w-10 rounded-lg">
+                <img src="/static/img/logo.png" alt="大数据实训助手" class="h-10 w-10 rounded-lg">
             </div>
-            <h2 class="text-lg font-bold text-white mb-1">DataTutor</h2>
+            <h2 class="text-lg font-bold text-white mb-1">大数据实训助手</h2>
             <p class="text-xs text-slate-500">大数据技术学科垂类智能教学助手</p>
         </div>
         <div class="bg-white/5 border border-white/10 rounded-xl p-4 text-left space-y-3">
             <div class="flex justify-between text-xs"><span class="text-slate-500">版本</span><span class="text-slate-300 mono">v4.0</span></div>
-            <div class="flex justify-between text-xs"><span class="text-slate-500">基座模型</span><span class="text-slate-300">讯飞星辰Agent ＋ 讯飞星辰Maas</span></div>
             <!-- 知识库 -->
             <div class="text-xs">
                 <div class="text-slate-500 mb-1.5">知识库（3 个）</div>
@@ -766,9 +765,7 @@
                     <div class="text-slate-300">ReportAgent <span class="text-slate-600">— 实训报告生成</span></div>
                 </div>
             </div>
-            <div class="flex justify-between text-xs"><span class="text-slate-500">开源地址</span><a href="https://github.com/Rosdwn/datatutor" target="_blank" class="text-indigo-400 hover:text-indigo-300">github.com/Rosdwn/datatutor</a></div>
         </div>
-        <p class="text-[11px] text-slate-500 mt-4 text-center">感谢讯飞提供的技术支持</p>
     </div>
 </div>
 </body>

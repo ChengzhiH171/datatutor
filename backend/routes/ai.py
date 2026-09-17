@@ -1,4 +1,4 @@
-"""讯飞星火工作流 Agent API — REST HTTPS"""
+"""工作流 Agent API — REST HTTPS"""
 from flask import Blueprint, request, jsonify
 from routes.auth import token_required
 import json
@@ -18,19 +18,19 @@ XUNFEI_FLOW_TEACHER = os.getenv('XUNFEI_FLOW_TEACHER', '')       # 课程生成
 XUNFEI_FLOW_REPORT   = os.getenv('XUNFEI_FLOW_REPORT', '')       # 报告生成
 XUNFEI_WORKFLOW_URL = 'https://xingchen-api.xf-yun.com/workflow/v1/chat/completions'
 
-# 千问兜底（已弃用，改用讯飞星辰MaaS）
+# 千问兜底（已弃用，改用 MaaS）
 # SILICONFLOW_API_KEY = os.getenv('SILICONFLOW_API_KEY', '')
 # SILICONFLOW_URL = 'https://api.siliconflow.cn/v1/chat/completions'
 # SILICONFLOW_MODEL = os.getenv('SILICONFLOW_MODEL', 'Qwen/Qwen3-8B')
 
-# 讯飞星辰 MaaS（OpenAI 兼容接口，替代千问兜底）
+# MaaS（OpenAI 兼容接口，替代千问兜底）
 XUNFEI_MAAS_URL = 'https://maas-api.cn-huabei-1.xf-yun.com/v2/chat/completions'
 XUNFEI_MAAS_AUTH = XUNFEI_API_KEY + ':' + XUNFEI_API_SECRET
 XUNFEI_MAAS_MODEL = 'xop35qwen2b'  # Qwen3.5-2B（免费）
 
 
 def call_xunfei_workflow(user_input, flow_id, history=None):
-    """调用讯飞工作流 Agent API（非流式）"""
+    """调用工作流 Agent API（非流式）"""
     if history is None:
         history = []
 
@@ -67,7 +67,7 @@ def call_xunfei_workflow(user_input, flow_id, history=None):
             try:
                 chunk = json.loads(data_str)
                 if chunk.get('code') != 0:
-                    return {'content': '', 'error': chunk.get('message', 'xfyun error'), 'usage': None}
+                    return {'content': '', 'error': chunk.get('message', 'api error'), 'usage': None}
                 choices = chunk.get('choices', [])
                 for c in choices:
                     content += c.get('delta', {}).get('content', '')
@@ -92,7 +92,7 @@ def call_xunfei_workflow(user_input, flow_id, history=None):
 
 
 def call_maas(user_input, max_tokens=800):
-    """讯飞星辰 MaaS 兜底（OpenAI 兼容接口）"""
+    """MaaS 兜底（OpenAI 兼容接口）"""
     try:
         resp = requests.post(
             XUNFEI_MAAS_URL,
@@ -119,7 +119,7 @@ def call_maas(user_input, max_tokens=800):
 
 
 def format_history(messages):
-    """将 [{role, content}] 转为讯飞 history 格式 [{role, content_type: 'text', content}]"""
+    """将 [{role, content}] 转为 API history 格式 [{role, content_type: 'text', content}]"""
     result = []
     for m in messages:
         result.append({
@@ -159,7 +159,7 @@ def ai_chat(current_user):
                     messages[i]['content'] = ctx + messages[i]['content']
                     break
 
-        # 提取系统提示词（讯飞 API 不支持 system role，拼入用户消息）
+        # 提取系统提示词（工作流 API 不支持 system role，拼入用户消息）
         system_prompt = ''
         for m in messages:
             if m['role'] == 'system':
