@@ -144,11 +144,20 @@ def register_terminal_handlers(socketio):
             vm_password = '123456'
             container_name = f'dts-student{student_id}'
 
-            # 检查容器是否存在，不存在则自动创建
+            # 检查容器是否存在，不存在则自动创建（Docker 不可用时给出明确提示）
             import subprocess
-            result = subprocess.run(['docker', 'ps', '-a', '--filter', f'name={container_name}',
-                                     '--format', '{{.Names}} {{.Status}}'],
-                                    capture_output=True, text=True, timeout=5)
+            try:
+                result = subprocess.run(['docker', 'ps', '-a', '--filter', f'name={container_name}',
+                                         '--format', '{{.Names}} {{.Status}}'],
+                                        capture_output=True, text=True, timeout=5)
+            except FileNotFoundError:
+                leave_room(session_key)
+                emit('terminal_error', {'message': '本机未安装 Docker，无法创建学生实训容器。请安装 Docker Desktop 后重试', 'session_id': session_id})
+                return
+            if result.returncode != 0:
+                leave_room(session_key)
+                emit('terminal_error', {'message': f'Docker 未运行或不可用: {result.stderr.strip()[:100]}', 'session_id': session_id})
+                return
             if container_name not in result.stdout:
                 print(f'[TERM] Auto-creating container {container_name} on port {vm_port}', flush=True)
                 subprocess.run(['docker', 'run', '-d',

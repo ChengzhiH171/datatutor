@@ -2,10 +2,13 @@
 import pymysql, os, time, json
 from werkzeug.security import generate_password_hash
 
+_MYSQL_HOST = os.getenv('MYSQL_HOST', 'mysql')
+_MYSQL_PWD = os.getenv('MYSQL_PASSWORD', 'datatutor123')
+
 def wait_mysql():
     for i in range(30):
         try:
-            conn = pymysql.connect(host='mysql', user='root', password='datatutor123', port=3306, database='datatutor', connect_timeout=2)
+            conn = pymysql.connect(host=_MYSQL_HOST, user='root', password=_MYSQL_PWD, port=3306, database='datatutor', connect_timeout=2)
             conn.close()
             print('[init] MySQL ready')
             return
@@ -24,7 +27,7 @@ def wait_doris():
 
 # ── 1. MySQL 用户 ──
 wait_mysql()
-conn = pymysql.connect(host='mysql', user='root', password='datatutor123', port=3306, database='datatutor')
+conn = pymysql.connect(host=_MYSQL_HOST, user='root', password=_MYSQL_PWD, port=3306, database='datatutor')
 cur = conn.cursor()
 cur.execute('SELECT COUNT(*) FROM users')
 if cur.fetchone()[0] == 0:
@@ -38,20 +41,7 @@ if cur.fetchone()[0] == 0:
     conn.commit()
     print('[init] 4 users created')
 
-# ── 1.5 班级种子（班级-课程多对多）──
-cur.execute('DELETE FROM class_students')
-cur.execute('DELETE FROM classes')
-conn.commit()
-cur.execute('SELECT COUNT(*) FROM classes')
-if cur.fetchone()[0] == 0:
-    cur.execute("INSERT INTO classes (teacher_id, name, class_code) VALUES (1, '大数据一班', 'BD2024-01')")
-    class_id = cur.lastrowid
-    for cid in range(1, 12):
-        cur.execute('INSERT INTO class_courses (class_id, course_id) VALUES (%s, %s)', (class_id, cid))
-    conn.commit()
-    print(f'[init] 1 class + 11 course associations')
-
-# ── 2. 11 门课程 + 子任务 ──
+# ── 2. 11 门课程 + 子任务（先于班级关联，保证外键可用）──
 cur.execute('SELECT COUNT(*) FROM courses')
 if cur.fetchone()[0] == 0:
     courses = [
@@ -92,23 +82,37 @@ if cur.fetchone()[0] == 0:
     cur.execute('SELECT COUNT(*) FROM subtasks')
     print(f'[init] {cur.fetchone()[0]} subtasks across 11 courses')
 
+# ── 1.5 班级种子（班级-课程多对多，依赖 courses 已插入）──
+cur.execute('DELETE FROM class_students')
+cur.execute('DELETE FROM classes')
+conn.commit()
+cur.execute('SELECT COUNT(*) FROM classes')
+if cur.fetchone()[0] == 0:
+    cur.execute("INSERT INTO classes (teacher_id, name, class_code) VALUES (1, '大数据一班', 'BD2024-01')")
+    class_id = cur.lastrowid
+    for cid in range(1, 12):
+        cur.execute('INSERT INTO class_courses (class_id, course_id) VALUES (%s, %s)', (class_id, cid))
+    conn.commit()
+    print(f'[init] 1 class + 11 course associations')
+
 cur.close(); conn.close()
 
-# ── 3. Doris 表 ──
-wait_doris()
-conn = pymysql.connect(host='doris', user='root', password='', port=9030)
-cur = conn.cursor()
-cur.execute('CREATE DATABASE IF NOT EXISTS datatutor_analytics')
-cur.execute('USE datatutor_analytics')
-for sql in [
-    'CREATE TABLE IF NOT EXISTS terminal_events (student_id INT, event_time DATETIME DEFAULT CURRENT_TIMESTAMP, course_id INT, subtask_id INT, vm_name VARCHAR(50), data STRING, direction VARCHAR(10)) DUPLICATE KEY(student_id, event_time) DISTRIBUTED BY HASH(student_id) BUCKETS 2 PROPERTIES("replication_num"="1")',
-    'CREATE TABLE IF NOT EXISTS chat_events (student_id INT, event_time DATETIME DEFAULT CURRENT_TIMESTAMP, course_id INT, subtask_id INT, msg_role VARCHAR(10), msg_length INT) DUPLICATE KEY(student_id, event_time) DISTRIBUTED BY HASH(student_id) BUCKETS 2 PROPERTIES("replication_num"="1")',
-    'CREATE TABLE IF NOT EXISTS task_completions (student_id INT, event_time DATETIME DEFAULT CURRENT_TIMESTAMP, course_id INT, subtask_id INT, duration_seconds INT, grade_level VARCHAR(2)) DUPLICATE KEY(student_id, event_time) DISTRIBUTED BY HASH(student_id) BUCKETS 2 PROPERTIES("replication_num"="1")',
-    'CREATE TABLE IF NOT EXISTS page_views (student_id INT, event_time DATETIME DEFAULT CURRENT_TIMESTAMP, page VARCHAR(100), duration_seconds INT) DUPLICATE KEY(student_id, event_time) DISTRIBUTED BY HASH(student_id) BUCKETS 2 PROPERTIES("replication_num"="1")',
-]:
-    try: cur.execute(sql)
-    except Exception as e: print(f'[init] Doris warn: {str(e)[:60]}')
-conn.commit()
-cur.close(); conn.close()
-print('[init] Doris tables created')
+# ── 3. Doris 表（本地无 Doris 时通过 SKIP_DORIS=1 跳过）──
+if os.getenv('SKIP_DORIS') != '1':
+    wait_doris()
+    conn = pymysql.connect(host='doris', user='root', password='', port=9030)
+    cur = conn.cursor()
+    cur.execute('CREATE DATABASE IF NOT EXISTS datatutor_analytics')
+    cur.execute('USE datatutor_analytics')
+    for sql in [
+        'CREATE TABLE IF NOT EXISTS terminal_events (student_id INT, event_time DATETIME DEFAULT CURRENT_TIMESTAMP, course_id INT, subtask_id INT, vm_name VARCHAR(50), data STRING, direction VARCHAR(10)) DUPLICATE KEY(student_id, event_time) DISTRIBUTED BY HASH(student_id) BUCKETS 2 PROPERTIES("replication_num"="1")',
+        'CREATE TABLE IF NOT EXISTS chat_events (student_id INT, event_time DATETIME DEFAULT CURRENT_TIMESTAMP, course_id INT, subtask_id INT, msg_role VARCHAR(10), msg_length INT) DUPLICATE KEY(student_id, event_time) DISTRIBUTED BY HASH(student_id) BUCKETS 2 PROPERTIES("replication_num"="1")',
+        'CREATE TABLE IF NOT EXISTS task_completions (student_id INT, event_time DATETIME DEFAULT CURRENT_TIMESTAMP, course_id INT, subtask_id INT, duration_seconds INT, grade_level VARCHAR(2)) DUPLICATE KEY(student_id, event_time) DISTRIBUTED BY HASH(student_id) BUCKETS 2 PROPERTIES("replication_num"="1")',
+        'CREATE TABLE IF NOT EXISTS page_views (student_id INT, event_time DATETIME DEFAULT CURRENT_TIMESTAMP, page VARCHAR(100), duration_seconds INT) DUPLICATE KEY(student_id, event_time) DISTRIBUTED BY HASH(student_id) BUCKETS 2 PROPERTIES("replication_num"="1")',
+    ]:
+        try: cur.execute(sql)
+        except Exception as e: print(f'[init] Doris warn: {str(e)[:60]}')
+    conn.commit()
+    cur.close(); conn.close()
+    print('[init] Doris tables created')
 print('[init] All done — 4 users + 11 courses + 68 subtasks + 4 Doris tables')
