@@ -1,4 +1,4 @@
-# DataTutor —— 大数据技术学科垂类智能教学助手
+# 大数据实训助手 —— 大数据技术学科垂类智能教学助手
 
 面向一流学科建设的学科垂类大模型与创新应用开发平台。
 
@@ -52,7 +52,7 @@
 环境要求: Docker & Docker Compose
 
 ```bash
-git clone https://github.com/Rosdwn/datatutor.git
+git clone https://github.com/ChengzhiH171/datatutor.git
 cd datatutor
 # 将 backend/.env.example 复制为 backend/.env，填入 API 密钥
 docker build -t datatutor-student -f Dockerfile_student .
